@@ -1,0 +1,93 @@
+#include <locale.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <time.h>
+#include "scheduler.h"
+#include "ui.h"
+
+// Aux function for delay in milliseconds
+void msleep(int milliseconds) {
+    struct timespec ts;
+    ts.tv_sec = milliseconds / 1000;
+    ts.tv_nsec = (milliseconds % 1000) * 1000000;
+    nanosleep(&ts, NULL);
+}
+
+void cleanup() {
+    for (int i = 0; i < num_processes; i++) {
+        free(processes[i].timeline);
+    }
+}
+
+int main() {
+    setlocale(LC_ALL, "");
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    nodelay(stdscr, FALSE);
+
+    // Initialize colors
+    start_color();
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Not arrived
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Executing
+    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Overhead
+    init_pair(4, COLOR_BLACK, COLOR_BLUE);     // Waiting
+    init_pair(5, COLOR_BLACK, COLOR_RED);      // Completed
+
+    initialize_processes();
+
+    int ch;
+    int running = 0;
+
+    while ((ch = getch()) != 'q') {
+        switch (ch) {
+            case ' ':
+                running = !running;
+                if (running) {
+                    reset_simulation();
+                    run_current_algorithm();
+                }
+                break;
+
+            case KEY_RIGHT:
+                if (current_time < TOTAL_TIME - 1) current_time++;
+                break;
+
+            case KEY_LEFT:
+                if (current_time > 0) current_time--;
+                break;
+
+            case KEY_F(1):
+                current_algorithm = 0;
+                reset_simulation();
+                running = 0;
+                break;
+
+            case KEY_F(2):
+                current_algorithm = 1;
+                reset_simulation();
+                running = 0;
+                break;
+
+            case KEY_F(3):
+                current_algorithm = 2;
+                reset_simulation();
+                running = 0;
+                break;
+
+            case KEY_F(4):
+                current_algorithm = 3;
+                reset_simulation();
+                running = 0;
+                break;
+        }
+
+        draw_interface();
+        msleep(10);
+    }
+
+    cleanup();
+    endwin();
+    return 0;
+}
