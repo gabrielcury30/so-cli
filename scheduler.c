@@ -44,14 +44,23 @@ void initialize_processes() {
 }
 
 void execute_fifo() {
-    for (int t = 0; t < TOTAL_TIME; t++) {
-        int running_process = -1;
+    int running_process = -1;
+    int process_completed = 0;
 
-        // Find first process that arrived and hasn't finished
-        for (int i = 0; i < num_processes; i++) {
-            if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
-                running_process = i;
-                break;
+    for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
+        // If there are any process executing, find next on queue
+        if (running_process == -1) {
+            // Choose process that got in earlier and yet no finished
+            int earliest_arrival = TOTAL_TIME + 1;
+            running_process = -1;
+
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t &&
+                    processes[i].remaining_time > 0 &&
+                    processes[i].arrival_time < earliest_arrival) {
+                    earliest_arrival = processes[i].arrival_time;
+                    running_process = i;
+                }
             }
         }
 
@@ -60,6 +69,12 @@ void execute_fifo() {
             if (i == running_process && running_process != -1) {
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
+
+                // Check if process is done
+                if (processes[i].remaining_time <= 0) {
+                    process_completed++;
+                    running_process = -1;  // Free CPU for next process
+                }
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -72,14 +87,6 @@ void execute_fifo() {
 }
 
 void execute_sjf() {
-    // Reset remaining times
-    for (int i = 0; i < num_processes; i++) {
-        processes[i].remaining_time = processes[i].execution_time;
-        for (int t = 0; t < TOTAL_TIME; t++) {
-            processes[i].timeline[t] = NOT_ARRIVED;
-        }
-    }
-
     for (int t = 0; t < TOTAL_TIME; t++) {
         int running_process = -1;
         int shortest_time = TOTAL_TIME + 1;
@@ -111,14 +118,6 @@ void execute_sjf() {
 }
 
 void execute_edf() {
-    // Reset remaining times
-    for (int i = 0; i < num_processes; i++) {
-        processes[i].remaining_time = processes[i].execution_time;
-        for (int t = 0; t < TOTAL_TIME; t++) {
-            processes[i].timeline[t] = NOT_ARRIVED;
-        }
-    }
-
     for (int t = 0; t < TOTAL_TIME; t++) {
         int running_process = -1;
         int earliest_deadline = TOTAL_TIME + 1;
@@ -150,14 +149,6 @@ void execute_edf() {
 }
 
 void execute_rr() {
-    // Reset remaining times
-    for (int i = 0; i < num_processes; i++) {
-        processes[i].remaining_time = processes[i].execution_time;
-        for (int t = 0; t < TOTAL_TIME; t++) {
-            processes[i].timeline[t] = NOT_ARRIVED;
-        }
-    }
-
     int quantum = 2; // Time quantum for Round Robin
     int current_quantum = 0;
     int running_process = -1;
