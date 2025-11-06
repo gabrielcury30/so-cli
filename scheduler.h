@@ -23,6 +23,7 @@ typedef struct {
     int remaining_time;
     int priority;
     int deadline;
+    bool overhead;
     ProcessState *timeline;
 } Process;
 
