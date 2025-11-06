@@ -42,10 +42,10 @@ void draw_gantt_chart(int start_y, int start_x) {
                     color = 2; // Green
                     break;
                 case WAITING:
-                    color = 3; // Blue
+                    color = 3; // Yellow
                     break;
                 case OVERHEAD:
-                    color = 4; // Yellow
+                    color = 4; // Red
                     break;
                 case COMPLETED:
                     color = 1; // Gray
