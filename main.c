@@ -29,11 +29,10 @@ int main() {
 
     // Initialize colors
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Not arrived
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Null
     init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Executing
-    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Overhead
-    init_pair(4, COLOR_BLACK, COLOR_BLUE);     // Waiting
-    init_pair(5, COLOR_BLACK, COLOR_RED);      // Completed
+    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Waiting
+    init_pair(4, COLOR_BLACK, COLOR_RED);      // Overhead
 
     initialize_processes();
 

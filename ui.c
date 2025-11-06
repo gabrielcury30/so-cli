@@ -2,17 +2,11 @@
 
 void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y, start_x, "LEGEND:");
-    mvaddstr(start_y + 1, start_x, "[  ] - Not arrived");
     mvaddstr(start_y + 2, start_x, "[  ] - Executing");
-    mvaddstr(start_y + 3, start_x, "[  ] - Overhead");
-    mvaddstr(start_y + 4, start_x, "[  ] - Waiting");
-    mvaddstr(start_y + 5, start_x, "[  ] - Completed");
+    mvaddstr(start_y + 3, start_x, "[  ] - Waiting");
+    mvaddstr(start_y + 4, start_x, "[  ] - Overhead");
 
     // Legend colors
-    attron(COLOR_PAIR(1));
-    mvaddstr(start_y + 1, start_x + 1, "  ");
-    attroff(COLOR_PAIR(1));
-
     attron(COLOR_PAIR(2));
     mvaddstr(start_y + 2, start_x + 1, "  ");
     attroff(COLOR_PAIR(2));
@@ -24,10 +18,6 @@ void draw_legend(int start_y, int start_x) {
     attron(COLOR_PAIR(4));
     mvaddstr(start_y + 4, start_x + 1, "  ");
     attroff(COLOR_PAIR(4));
-
-    attron(COLOR_PAIR(5));
-    mvaddstr(start_y + 5, start_x + 1, "  ");
-    attroff(COLOR_PAIR(5));
 }
 
 void draw_gantt_chart(int start_y, int start_x) {
@@ -51,14 +41,14 @@ void draw_gantt_chart(int start_y, int start_x) {
                 case EXECUTING:
                     color = 2; // Green
                     break;
-                case OVERHEAD:
-                    color = 3; // Yellow
-                    break;
                 case WAITING:
-                    color = 4; // Blue
+                    color = 3; // Blue
+                    break;
+                case OVERHEAD:
+                    color = 4; // Yellow
                     break;
                 case COMPLETED:
-                    color = 5; // Red
+                    color = 1; // Gray
                     break;
             }
 
