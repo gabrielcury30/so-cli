@@ -3,6 +3,8 @@
 #include <stdlib.h>
 
 Process processes[MAX_PROCESSES];
+int quantum = 2;
+int overhead_time = 1;
 int num_processes = 0;
 int current_time = 0;
 int current_algorithm = 0;
@@ -119,8 +121,6 @@ void execute_sjf() {
 }
 
 void execute_edf() {
-    int quantum = 2;
-    int overhead_time = 1;
     int current_quantum = 0;
     int running_process = -1;
     int overhead_remaining = 0;
@@ -193,8 +193,6 @@ void execute_edf() {
 }
 
 void execute_rr() {
-    int quantum = 2;
-    int overhead_time = 1;
     int current_quantum = 0;
     int running_process = -1;
     int process_queue[MAX_PROCESSES];

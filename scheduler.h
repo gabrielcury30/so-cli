@@ -29,6 +29,8 @@ typedef struct {
 
 // Global variables
 extern Process processes[MAX_PROCESSES];
+extern int quantum;
+extern int overhead_time;
 extern int num_processes;
 extern int current_time;
 extern int current_algorithm;
