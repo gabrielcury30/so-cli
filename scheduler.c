@@ -119,25 +119,68 @@ void execute_sjf() {
 }
 
 void execute_edf() {
-    for (int t = 0; t < TOTAL_TIME; t++) {
-        int running_process = -1;
-        int earliest_deadline = TOTAL_TIME + 1;
+    int quantum = 2;
+    int overhead_time = 1;
+    int current_quantum = 0;
+    int running_process = -1;
+    int overhead_remaining = 0;
 
-        // Find process with earliest deadline
-        for (int i = 0; i < num_processes; i++) {
-            if (processes[i].arrival_time <= t &&
-                processes[i].remaining_time > 0 &&
-                processes[i].deadline < earliest_deadline) {
-                earliest_deadline = processes[i].deadline;
-                running_process = i;
+    // Reset remaining times and initialize overhead flag
+    for (int i = 0; i < num_processes; i++) {
+        processes[i].remaining_time = processes[i].execution_time;
+        processes[i].overhead = false;
+        for (int t = 0; t < TOTAL_TIME; t++) {
+            processes[i].timeline[t] = NOT_ARRIVED;
+        }
+    }
+
+    for (int t = 0; t < TOTAL_TIME; t++) {
+        // Check if current process finished its quantum or completed
+        if (running_process != -1) {
+            bool needs_preemption = (current_quantum >= quantum);
+            bool has_finished = (processes[running_process].remaining_time <= 0);
+
+            if (needs_preemption || has_finished) {
+                // If quantum over and not finishe, add overhead
+                if (needs_preemption && processes[running_process].remaining_time > 0) {
+                    processes[running_process].overhead = true;
+                    overhead_remaining = overhead_time;
+                }
+                running_process = -1;
+                current_quantum = 0;
+            }
+        }
+
+        // Get next process (EDF selection)
+        if (running_process == -1 && overhead_remaining == 0) {
+            int earliest_deadline = TOTAL_TIME + 1;
+            running_process = -1;
+
+            // Find process with earliest deadline
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t &&
+                    processes[i].remaining_time > 0 &&
+                    processes[i].deadline < earliest_deadline) {
+                    earliest_deadline = processes[i].deadline;
+                    running_process = i;
+                }
             }
         }
 
         // Update states
         for (int i = 0; i < num_processes; i++) {
-            if (i == running_process && running_process != -1) {
+            if (processes[i].overhead) {
+                processes[i].timeline[t] = OVERHEAD;
+
+                overhead_remaining--;
+                if (overhead_remaining == 0) {
+                    processes[i].overhead = false;
+                }
+            }
+            else if (i == running_process && running_process != -1) {
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
+                current_quantum++;
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -151,7 +194,7 @@ void execute_edf() {
 
 void execute_rr() {
     int quantum = 2;
-    int overhead_time = 2;
+    int overhead_time = 1;
     int current_quantum = 0;
     int running_process = -1;
     int process_queue[MAX_PROCESSES];
@@ -160,21 +203,6 @@ void execute_rr() {
 
     // Initialize queue with processes in arrival order
     for (int t = 0; t < TOTAL_TIME; t++) {
-
-        // if (overhead_remaining > 0) {
-        //     overhead_remaining--;
-        //     // Todos os processos em WAITING durante overhead
-        //     for (int i = 0; i < num_processes; i++) {
-        //         if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
-        //             processes[i].timeline[t] = WAITING;
-        //         } else if (processes[i].arrival_time > t) {
-        //             processes[i].timeline[t] = NOT_ARRIVED;
-        //         } else {
-        //             processes[i].timeline[t] = COMPLETED;
-        //         }
-        //     }
-        //     continue;
-        // }
 
         // Add newly arrived processes to queue
         for (int i = 0; i < num_processes; i++) {
@@ -189,7 +217,7 @@ void execute_rr() {
             bool has_finished = (processes[running_process].remaining_time <= 0);
 
             if (needs_preemption || has_finished) {
-                // Se foi preemptado (não terminou), adicionar overhead
+                // If quantum over and not finished, add overhead
                 if (needs_preemption && processes[running_process].remaining_time > 0) {
                     processes[running_process].overhead = true;
                     process_queue[queue_size++] = running_process;
@@ -203,7 +231,7 @@ void execute_rr() {
         // Get next process from queue
         if (running_process == -1 && queue_size > 0 && overhead_remaining == 0) {
             running_process = process_queue[0];
-            // Remover da fila
+            // Remove from queue
             for (int i = 0; i < queue_size - 1; i++) {
                 process_queue[i] = process_queue[i + 1];
             }
