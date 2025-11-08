@@ -3,12 +3,50 @@
 #include "config_ui.h"
 #include "globals.h"
 
+// Função para mostrar mensagem de erro em local fixo
+void show_error_message(const char* message) {
+    int screen_height, screen_width;
+    getmaxyx(stdscr, screen_height, screen_width);
+
+    // Posição fixa para mensagens de erro (parte inferior da tela)
+    int error_y = screen_height - 3;
+    int error_x = 2;
+
+    // Limpar área de erro
+    for (int i = 0; i < screen_width - 4; i++) {
+        mvaddch(error_y, error_x + i, ' ');
+    }
+
+    // Mostrar mensagem de erro
+    attron(COLOR_PAIR(4) | A_BOLD);
+    mvaddstr(error_y, error_x, message);
+    attroff(COLOR_PAIR(4) | A_BOLD);
+    refresh();
+}
+
+// Função para limpar mensagem de erro
+void clear_error_message() {
+    int screen_height, screen_width;
+    getmaxyx(stdscr, screen_height, screen_width);
+
+    int error_y = screen_height - 3;
+    for (int i = 0; i < screen_width - 4; i++) {
+        mvaddch(error_y, 2 + i, ' ');
+    }
+    refresh();
+}
+
 int get_int_input(int y, int x, const char* prompt, int min_val, int max_val, int default_val) {
+    int screen_height, screen_width;
+    getmaxyx(stdscr, screen_height, screen_width);
+
     char input[10];
     int value = default_val;
     int original_value = default_val;
 
     while (1) {
+        clear_error_message();
+
         // Clear input area
         for (int i = 0; i < 4; i++) {
             mvaddch(y, x + strlen(prompt) + i, ' ');
@@ -16,6 +54,7 @@ int get_int_input(int y, int x, const char* prompt, int min_val, int max_val, in
 
         // Show prompt and current value
         mvprintw(y, x, "%s [%d]: ", prompt, value);
+        refresh();
 
         // Get input
         echo();
@@ -25,6 +64,7 @@ int get_int_input(int y, int x, const char* prompt, int min_val, int max_val, in
         cbreak();
 
         if (strlen(input) == 0) {
+            clear_error_message();
             return value; // Use current value if empty input
         }
 
@@ -33,37 +73,18 @@ int get_int_input(int y, int x, const char* prompt, int min_val, int max_val, in
         value = strtol(input, &endptr, 10);
 
         if (endptr != input && value >= min_val && value <= max_val) {
+            clear_error_message();
             break; // Valid input
         }
 
         // Show error
-        if (strstr(prompt, "Quantum") != NULL || strstr(prompt, "Overhead") != NULL) {
-            attron(COLOR_PAIR(4)); // Red
-            mvprintw(25, x - 11, "Invalid! Enter value between %d and %d", min_val, max_val);
-            attroff(COLOR_PAIR(4));
-            refresh();
-            napms(1000);
+        char error_msg[100];
+        snprintf(error_msg, sizeof(error_msg),
+            "Invalid input! Enter value between %d and %d", min_val, max_val);
+        show_error_message(error_msg);
 
-            for (int i = 0; i < 44; i++) {
-                attron(COLOR_PAIR(2));
-                mvaddch(25, x - 12 + i, ' ');
-                attroff(COLOR_PAIR(2));
-            }
-            value = original_value;
-        } else {
-            attron(COLOR_PAIR(4)); // Red
-            mvprintw(23, x - 6, "Invalid! Enter value between %d and %d", min_val, max_val);
-            attroff(COLOR_PAIR(4));
-            refresh();
-            napms(1000); // Wait 2 seconds
-
-            for (int i = 0; i < 49; i++) {
-                attron(COLOR_PAIR(2));
-                mvaddch(23, x - 6 + i, ' ');
-                attroff(COLOR_PAIR(2));
-            }
-            value = original_value;
-        }
+        napms(1500); // Wait 1.5 seconds
+        value = original_value;
     }
 
     return value;
