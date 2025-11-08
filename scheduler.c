@@ -27,7 +27,31 @@ void initialize_processes() {
     processes[2].priority = 1;
     processes[2].deadline = 15;
 
-    num_processes = 3;
+    // Example process 4
+    processes[3].id = 4;
+    processes[3].arrival_time = 4;
+    processes[3].execution_time = 4;
+    processes[3].remaining_time = 4;
+    processes[3].priority = 1;
+    processes[3].deadline = 15;
+
+    // Example process 5
+    processes[4].id = 5;
+    processes[4].arrival_time = 4;
+    processes[4].execution_time = 4;
+    processes[4].remaining_time = 4;
+    processes[4].priority = 1;
+    processes[4].deadline = 15;
+
+    // Example process 6
+    processes[5].id = 6;
+    processes[5].arrival_time = 4;
+    processes[5].execution_time = 4;
+    processes[5].remaining_time = 4;
+    processes[5].priority = 1;
+    processes[5].deadline = 15;
+
+    num_processes = 6;
 
     // Allocate and initialize timeline arrays
     for (int i = 0; i < num_processes; i++) {

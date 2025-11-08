@@ -122,9 +122,8 @@ void show_screen_size_error() {
     attroff(A_BOLD | COLOR_PAIR(4));
 
     // Detailed information
-    mvprintw(center_y + 2, center_x - 15, "Required minimum: 90 x 30");
+    mvprintw(center_y + 2, center_x - 15, "Required minimum: 106 x 33");
     mvprintw(center_y + 3, center_x - 15, "Current size:     %2d x %2d", screen_width, screen_height);
-    mvprintw(center_y + 4, center_x - 15, "Available time:   %2d units", TOTAL_TIME);
 
     // Instructions
     attron(A_BOLD);
@@ -143,20 +142,17 @@ void draw_interface() {
         return;
     }
 
-    int center_x = screen_width / 2;
-    int center_y = screen_height / 2;
-
     // Title
-    attron(A_BOLD);
+    attron(A_BOLD | COLOR_PAIR(5)); // Contrast
     mvprintw(1, 2, "CPU SCHEDULING ALGORITHM SIMULATOR - %s", algorithm_names[current_algorithm]);
-    attroff(A_BOLD);
+    attroff(A_BOLD | COLOR_PAIR(5));
 
     // Gantt chart
     mvaddstr(3, 2, "GANTT CHART:");
     draw_gantt_chart(4, 2);
 
     // Legend
-    draw_legend(4, screen_width - 20);
+    draw_legend(4, 75);
 
     // Controls
     mvaddstr(15, 2, "CONTROLS:");
@@ -169,27 +165,16 @@ void draw_interface() {
     mvaddstr(23, 2, "Q: Quit");
 
     // Process information
-    mvaddstr(22, 2, "PROCESS INFORMATION:");
+    mvaddstr(23, 2, "PROCESS INFORMATION:");
     for (int i = 0; i < num_processes; i++) {
-        mvprintw(23 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d, Remaining=%d",
+        mvprintw(24 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d, Remaining=%d",
                 processes[i].id, processes[i].arrival_time,
                 processes[i].execution_time, processes[i].deadline,
                 processes[i].remaining_time);
     }
 
     // Current time indicator
-    mvprintw(24+num_processes, 2, "Current Time: %d", current_time);
+    mvprintw(25 + num_processes, 2, "Current Time: %d", current_time);
 
     refresh();
-}
-
-bool check_screen_size() {
-    if (screen_height < 24 || screen_width < 80) {
-        clear();
-        mvaddstr(0, 0, "ERROR: Screen too small!");
-        mvprintw(1, 0, "Required: 80x24, Current: %dx%d", screen_width, screen_height);
-        refresh();
-        return false;
-    }
-    return true;
 }

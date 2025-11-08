@@ -37,6 +37,7 @@ int main() {
     init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Green Executing
     init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Yellow Waiting
     init_pair(4, COLOR_BLACK, COLOR_RED);      // Red Overhead
+    init_pair(5, COLOR_BLACK, COLOR_WHITE);    // White Contrast
 
     if (is_screen_too_small()) {
             show_screen_size_error();
