@@ -1,19 +1,11 @@
 #include <locale.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <time.h>
 #include "globals.h"
 #include "scheduler.h"
 #include "ui.h"
 #include "config_ui.h"
-
-// Aux function for delay in milliseconds
-void msleep(int milliseconds) {
-    struct timespec ts;
-    ts.tv_sec = milliseconds / 1000;
-    ts.tv_nsec = (milliseconds % 1000) * 1000000;
-    nanosleep(&ts, NULL);
-}
+#include "screen_utils.h"
 
 void cleanup() {
     for (int i = 0; i < num_processes; i++) {
@@ -29,6 +21,7 @@ int main() {
     keypad(stdscr, TRUE);
     nodelay(stdscr, FALSE);
     curs_set(0);
+    int ch;
 
     initialize_globals();
     update_screen_size();
@@ -47,28 +40,7 @@ int main() {
         initialize_default_processes();
     }
 
-    if (is_screen_too_small()) {
-        show_screen_size_error();
-        // Wait for user to resize or quit
-        while (getch() != 'q') {
-            update_screen_size(); // Check if resized
-            if (!is_screen_too_small()) {
-                break; // Screen became big enough
-            }
-            show_screen_size_error();
-            msleep(100);
-        }
-
-        // If user left with 'Q'
-        if (is_screen_too_small()) {
-            endwin();
-            return 1;
-        }
-    }
-
-    int ch;
     int running = 0;
-
     while ((ch = getch()) != 'q') {
         update_screen_size();
 

@@ -2,7 +2,8 @@
 #include <string.h>
 #include "config_ui.h"
 #include "globals.h"
-
+#include "ui.h"
+#include "screen_utils.h"
 // Função para mostrar mensagem de erro em local fixo
 void show_error_message(const char* message) {
     int screen_height, screen_width;
@@ -37,9 +38,6 @@ void clear_error_message() {
 }
 
 int get_int_input(int y, int x, const char* prompt, int min_val, int max_val, int default_val) {
-    int screen_height, screen_width;
-    getmaxyx(stdscr, screen_height, screen_width);
-
     char input[10];
     int value = default_val;
     int original_value = default_val;
@@ -237,6 +235,13 @@ void show_main_menu() {
 
     while (1) {
         clear();
+        update_screen_size();
+        if (is_screen_too_small()) {
+            show_screen_size_error();
+            napms(50);
+            continue;
+        }
+
         getmaxyx(stdscr, screen_height, screen_width);
 
         // Calculate dynamic box size and position
