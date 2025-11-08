@@ -24,7 +24,13 @@ void draw_gantt_chart(int start_y, int start_x) {
     // Time header
     mvaddstr(start_y, start_x, "Time: ");
     for (int t = 0; t < TOTAL_TIME; t++) {
-        mvprintw(start_y, start_x + 6 + t * CELL_WIDTH, "%2d", t);
+        if (t == current_time) {
+            attron(A_BOLD | A_UNDERLINE);
+            mvprintw(start_y, start_x + 6 + t * CELL_WIDTH, "%02d", t);
+            attroff(A_BOLD | A_UNDERLINE);
+        } else {
+            mvprintw(start_y, start_x + 6 + t * CELL_WIDTH, "%02d", t);
+        }
     }
 
     // Process rows
@@ -33,36 +39,55 @@ void draw_gantt_chart(int start_y, int start_x) {
 
         for (int t = 0; t < TOTAL_TIME; t++) {
             int color = 1;
+            char cell_char = ' ';
 
-            switch (processes[i].timeline[t]) {
-                case NOT_ARRIVED:
-                    color = 1; // Gray
-                    break;
-                case EXECUTING:
-                    color = 2; // Green
-                    break;
-                case WAITING:
-                    color = 3; // Yellow
-                    break;
-                case OVERHEAD:
-                    color = 4; // Red
-                    break;
-                case COMPLETED:
-                    color = 1; // Gray
-                    break;
+            // If not current time, shows as not arrived
+            if (t > current_time) {
+                color = 1; // Gray
+                cell_char = '_';
+            } else {
+                switch (processes[i].timeline[t]) {
+                    case NOT_ARRIVED:
+                        color = 1; // Gray
+                        break;
+                    case EXECUTING:
+                        color = 2; // Green
+                        break;
+                    case WAITING:
+                        color = 3; // Yellow
+                        break;
+                    case OVERHEAD:
+                        color = 4; // Red
+                        break;
+                    case COMPLETED:
+                        color = 1; // Gray
+                        break;
+                }
+            }
+
+            // Highlight current time column
+            if (t == current_time) {
+                attron(A_BOLD);
             }
 
             // Draw colored cell
             attron(COLOR_PAIR(color));
             for (int w = 0; w < CELL_WIDTH - 1; w++) {
-                mvaddch(start_y + 2 + i, start_x + 6 + t * CELL_WIDTH + w, ' ');
+                mvaddch(start_y + 2 + i, start_x + 6 + t * CELL_WIDTH + w, cell_char);
             }
             attroff(COLOR_PAIR(color));
+
+            if (t == current_time) {
+                attroff(A_BOLD);
+            }
         }
     }
 }
 
 void draw_interface() {
+    int screen_height, screen_width;
+    getmaxyx(stdscr, screen_height, screen_width);
+
     clear();
 
     // Title
@@ -75,7 +100,7 @@ void draw_interface() {
     draw_gantt_chart(4, 2);
 
     // Legend
-    draw_legend(4, 65);
+    draw_legend(4, screen_width - 20);
 
     // Controls
     mvaddstr(15, 2, "CONTROLS:");
