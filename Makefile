@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -D_POSIX_C_SOURCE=199309L
 LIBS = -lncurses
-SOURCES = main.c scheduler.c ui.c globals.c
+SOURCES = main.c scheduler.c ui.c globals.c config_ui.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = scheduler
 

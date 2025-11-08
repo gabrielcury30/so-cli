@@ -4,7 +4,7 @@
 #include <ncurses.h>
 #include <stdbool.h>
 
-#define MAX_PROCESSES 8
+#define MAX_PROCESSES 6
 #define CELL_WIDTH 3
 
 // Process states

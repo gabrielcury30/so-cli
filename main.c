@@ -5,6 +5,7 @@
 #include "globals.h"
 #include "scheduler.h"
 #include "ui.h"
+#include "config_ui.h"
 
 // Aux function for delay in milliseconds
 void msleep(int milliseconds) {
@@ -27,38 +28,43 @@ int main() {
     noecho();
     keypad(stdscr, TRUE);
     nodelay(stdscr, FALSE);
+    curs_set(0);
 
     initialize_globals();
     update_screen_size();
 
     // Initialize colors
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Gray Null
-    init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Green Executing
-    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Yellow Waiting
-    init_pair(4, COLOR_BLACK, COLOR_RED);      // Red Overhead
-    init_pair(5, COLOR_BLACK, COLOR_WHITE);    // White Contrast
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Null Gray
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Executing Green
+    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Waiting Yellow
+    init_pair(4, COLOR_BLACK, COLOR_RED);      // Overhead Red
+    init_pair(5, COLOR_BLACK, COLOR_WHITE);    // Contrast White
+
+    show_configuration_screen();
+
+    if (num_processes == 0) {
+        initialize_default_processes();
+    }
 
     if (is_screen_too_small()) {
+        show_screen_size_error();
+        // Wait for user to resize or quit
+        while (getch() != 'q') {
+            update_screen_size(); // Check if resized
+            if (!is_screen_too_small()) {
+                break; // Screen became big enough
+            }
             show_screen_size_error();
-            // Wait for user to resize or quit
-            while (getch() != 'q') {
-                update_screen_size(); // Check if resized
-                if (!is_screen_too_small()) {
-                    break; // Screen became big enough
-                }
-                show_screen_size_error();
-                msleep(100);
-            }
-
-            // If user left with 'Q'
-            if (is_screen_too_small()) {
-                endwin();
-                return 1;
-            }
+            msleep(100);
         }
 
-    initialize_processes();
+        // If user left with 'Q'
+        if (is_screen_too_small()) {
+            endwin();
+            return 1;
+        }
+    }
 
     int ch;
     int running = 0;

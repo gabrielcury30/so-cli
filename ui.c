@@ -137,11 +137,6 @@ void show_screen_size_error() {
 void draw_interface() {
     clear();
 
-    if (is_screen_too_small()) {
-        show_screen_size_error();
-        return;
-    }
-
     // Title
     attron(A_BOLD | COLOR_PAIR(5)); // Contrast
     mvprintw(1, 2, "CPU SCHEDULING ALGORITHM SIMULATOR - %s", algorithm_names[current_algorithm]);
@@ -158,19 +153,17 @@ void draw_interface() {
     mvaddstr(15, 2, "CONTROLS:");
     mvaddstr(16, 2, "F1-F4: Select algorithm (FIFO, SJF, EDF, RR)");
     mvaddstr(17, 2, "SPACE: Run/Reset simulation");
-    mvaddstr(18, 2, "RIGHT ARROW: Advance time");
-    mvaddstr(19, 2, "LEFT ARROW: Go back in time");
-    mvaddstr(20, 2, "A/D: Scroll chart left/right");
-    mvaddstr(21, 2, "H: Go to start, E: Go to end");
-    mvaddstr(23, 2, "Q: Quit");
+    mvaddstr(18, 2, "RIGHT|RIGHT ARROW: Advance or go back in time");
+    mvaddstr(19, 2, "A|D: Scroll chart left and right");
+    mvaddstr(20, 2, "H: Go to start, E: Go to end");
+    mvaddstr(21, 2, "Q: Quit");
 
     // Process information
     mvaddstr(23, 2, "PROCESS INFORMATION:");
     for (int i = 0; i < num_processes; i++) {
-        mvprintw(24 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d, Remaining=%d",
+        mvprintw(24 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d",
                 processes[i].id, processes[i].arrival_time,
-                processes[i].execution_time, processes[i].deadline,
-                processes[i].remaining_time);
+                processes[i].execution_time, processes[i].deadline);
     }
 
     // Current time indicator

@@ -3,7 +3,7 @@
 
 #include "globals.h"
 
-void initialize_processes();
+void initialize_default_processes();
 void execute_fifo();
 void execute_sjf();
 void execute_edf();

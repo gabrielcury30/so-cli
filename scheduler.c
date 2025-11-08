@@ -2,12 +2,12 @@
 #include "globals.h"
 #include <stdlib.h>
 
-void initialize_processes() {
+void initialize_default_processes() {
     // Example process 1
     processes[0].id = 1;
     processes[0].arrival_time = 0;
     processes[0].execution_time = 5;
-    processes[0].remaining_time = 5;
+    processes[0].remaining_time = processes[0].execution_time;
     processes[0].priority = 1;
     processes[0].deadline = 10;
 
@@ -15,7 +15,7 @@ void initialize_processes() {
     processes[1].id = 2;
     processes[1].arrival_time = 2;
     processes[1].execution_time = 3;
-    processes[1].remaining_time = 3;
+    processes[1].remaining_time = processes[1].execution_time;
     processes[1].priority = 2;
     processes[1].deadline = 8;
 
@@ -23,33 +23,33 @@ void initialize_processes() {
     processes[2].id = 3;
     processes[2].arrival_time = 4;
     processes[2].execution_time = 4;
-    processes[2].remaining_time = 4;
-    processes[2].priority = 1;
+    processes[2].remaining_time = processes[2].execution_time;
+    processes[2].priority = 3;
     processes[2].deadline = 15;
 
     // Example process 4
     processes[3].id = 4;
-    processes[3].arrival_time = 4;
-    processes[3].execution_time = 4;
-    processes[3].remaining_time = 4;
-    processes[3].priority = 1;
-    processes[3].deadline = 15;
+    processes[3].arrival_time = 6;
+    processes[3].execution_time = 6;
+    processes[3].remaining_time = processes[3].execution_time;
+    processes[3].priority = 5;
+    processes[3].deadline = 21;
 
     // Example process 5
     processes[4].id = 5;
-    processes[4].arrival_time = 4;
-    processes[4].execution_time = 4;
-    processes[4].remaining_time = 4;
-    processes[4].priority = 1;
-    processes[4].deadline = 15;
+    processes[4].arrival_time = 10;
+    processes[4].execution_time = 2;
+    processes[4].remaining_time = processes[4].execution_time;
+    processes[4].priority = 4;
+    processes[4].deadline = 18;
 
     // Example process 6
     processes[5].id = 6;
-    processes[5].arrival_time = 4;
-    processes[5].execution_time = 4;
-    processes[5].remaining_time = 4;
-    processes[5].priority = 1;
-    processes[5].deadline = 15;
+    processes[5].arrival_time = 12;
+    processes[5].execution_time = 12;
+    processes[5].remaining_time = processes[5].execution_time;
+    processes[5].priority = 6;
+    processes[5].deadline = 35;
 
     num_processes = 6;
 
