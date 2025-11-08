@@ -80,11 +80,46 @@ int main() {
                 break;
 
             case KEY_RIGHT:
-                if (current_time < TOTAL_TIME - 1) current_time++;
+                if (current_time < TOTAL_TIME - 1) {
+                    current_time++;
+                    // Automatic Scroll when current_time is off screen
+                    if (current_time >= time_offset + visible_columns) {
+                        time_offset = current_time - visible_columns + 1;
+                    }
+                }
                 break;
 
             case KEY_LEFT:
-                if (current_time > 0) current_time--;
+                if (current_time > 0) {
+                    current_time--;
+                    // Automatic Scroll when current_time is off screen
+                    if (current_time < time_offset) {
+                        time_offset = current_time;
+                    }
+                }
+                break;
+
+            case 'd': // Right Scroll
+            case 'D':
+                if (time_offset + visible_columns < TOTAL_TIME) {
+                    time_offset++;
+                }
+                break;
+
+            case 'a': // Left Scroll
+            case 'A':
+                if (time_offset > 0) {
+                    time_offset--;
+                }
+                break;
+
+            case 'h': // Home - go to beginning
+                time_offset = 0;
+                break;
+
+            case 'e': // End - go to end
+                time_offset = TOTAL_TIME - visible_columns;
+                if (time_offset < 0) time_offset = 0;
                 break;
 
             case KEY_F(1):

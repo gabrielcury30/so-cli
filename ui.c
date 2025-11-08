@@ -24,21 +24,39 @@ void draw_legend(int start_y, int start_x) {
 void draw_gantt_chart(int start_y, int start_x) {
     // Time header
     mvaddstr(start_y, start_x, "Time: ");
-    for (int t = 0; t < TOTAL_TIME; t++) {
+
+    // Get visible range
+    int start_time = time_offset;
+    int end_time = time_offset + visible_columns;
+    if (end_time > TOTAL_TIME) end_time = TOTAL_TIME;
+
+    // Show only visible columns
+    for (int t = start_time; t < end_time; t++) {
+        int screen_col = start_x + 8 + (t - time_offset) * CELL_WIDTH;
+
         if (t == current_time) {
             attron(A_BOLD | A_UNDERLINE);
-            mvprintw(start_y, start_x + 6 + t * CELL_WIDTH, "%02d", t);
+            mvprintw(start_y, screen_col, "%02d", t);
             attroff(A_BOLD | A_UNDERLINE);
         } else {
-            mvprintw(start_y, start_x + 6 + t * CELL_WIDTH, "%02d", t);
+            mvprintw(start_y, screen_col, "%02d", t);
         }
     }
 
-    // Process rows
+    // Scroll indicator if necessary
+    if (time_offset > 0) {
+        mvaddstr(start_y, start_x + 6, "<");
+    }
+    if (end_time < TOTAL_TIME) {
+        mvaddstr(start_y, start_x + 10 + visible_columns * CELL_WIDTH - 2, ">");
+    }
+
+    // Process rows - only visible columns
     for (int i = 0; i < num_processes; i++) {
         mvprintw(start_y + 2 + i, start_x, "P%d: ", processes[i].id);
 
-        for (int t = 0; t < TOTAL_TIME; t++) {
+        for (int t = start_time; t < end_time; t++) {
+            int screen_col = start_x + 8 + (t - time_offset) * CELL_WIDTH;
             int color = 1;
             char cell_char = ' ';
 
@@ -74,7 +92,7 @@ void draw_gantt_chart(int start_y, int start_x) {
             // Draw colored cell
             attron(COLOR_PAIR(color));
             for (int w = 0; w < CELL_WIDTH - 1; w++) {
-                mvaddch(start_y + 2 + i, start_x + 6 + t * CELL_WIDTH + w, cell_char);
+                mvaddch(start_y + 2 + i, screen_col + w, cell_char);
             }
             attroff(COLOR_PAIR(color));
 
@@ -83,6 +101,11 @@ void draw_gantt_chart(int start_y, int start_x) {
             }
         }
     }
+
+    // Show scroll information
+    mvprintw(start_y + num_processes + 3, start_x,
+             "Showing time %d to %d (Total: %d)",
+             start_time, end_time - 1, TOTAL_TIME);
 }
 
 void show_screen_size_error() {
@@ -141,7 +164,9 @@ void draw_interface() {
     mvaddstr(17, 2, "SPACE: Run/Reset simulation");
     mvaddstr(18, 2, "RIGHT ARROW: Advance time");
     mvaddstr(19, 2, "LEFT ARROW: Go back in time");
-    mvaddstr(20, 2, "Q: Quit");
+    mvaddstr(20, 2, "A/D: Scroll chart left/right");
+    mvaddstr(21, 2, "H: Go to start, E: Go to end");
+    mvaddstr(23, 2, "Q: Quit");
 
     // Process information
     mvaddstr(22, 2, "PROCESS INFORMATION:");

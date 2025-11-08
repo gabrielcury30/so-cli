@@ -46,6 +46,10 @@ extern int screen_height;
 extern int screen_width;
 extern bool screen_resized;
 
+// Scroll
+extern int time_offset;
+extern int visible_columns;
+
 // Controls and state
 extern bool simulation_running;
 extern int animation_speed;

@@ -19,6 +19,9 @@ int screen_height = 0;
 int screen_width = 0;
 bool screen_resized = false;
 
+int time_offset = 0;
+int visible_columns = 21;
+
 // Controls and state
 bool simulation_running = false;
 int animation_speed = 100; // ms
@@ -26,27 +29,15 @@ int animation_speed = 100; // ms
 // Global functions implementation
 void update_screen_size() {
     getmaxyx(stdscr, screen_height, screen_width);
-
-    // Get TOTAL_TIME based on screen width
-    int available_width = screen_width - 40; // Space for labels and legend
-    TOTAL_TIME = available_width / CELL_WIDTH;
-
-    // Check if screen is too small
-    if (TOTAL_TIME < 15) {
-        TOTAL_TIME = 15; // Minimum value to avoid crashes
-    }
-
-    // Maximum limit
-    if (TOTAL_TIME > 70) TOTAL_TIME = 70;
 }
 
 bool is_screen_too_small() {
-    return (screen_width < 90 || screen_height < 30 || TOTAL_TIME < 15);
+    return (screen_width < 106 || screen_height < 33 || TOTAL_TIME < 15);
 }
 
 void initialize_globals() {
     // Start default values
-    TOTAL_TIME = 20;
+    TOTAL_TIME = 100;
     num_processes = 0;
     current_time = 0;
     current_algorithm = 0;
