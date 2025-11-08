@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include "globals.h"
 #include "scheduler.h"
 #include "ui.h"
 
@@ -27,12 +28,34 @@ int main() {
     keypad(stdscr, TRUE);
     nodelay(stdscr, FALSE);
 
+    initialize_globals();
+    update_screen_size();
+
     // Initialize colors
     start_color();
-    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Null
-    init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Executing
-    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Waiting
-    init_pair(4, COLOR_BLACK, COLOR_RED);      // Overhead
+    init_pair(1, COLOR_WHITE, COLOR_BLACK);    // Gray Null
+    init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Green Executing
+    init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Yellow Waiting
+    init_pair(4, COLOR_BLACK, COLOR_RED);      // Red Overhead
+
+    if (is_screen_too_small()) {
+            show_screen_size_error();
+            // Wait for user to resize or quit
+            while (getch() != 'q') {
+                update_screen_size(); // Check if resized
+                if (!is_screen_too_small()) {
+                    break; // Screen became big enough
+                }
+                show_screen_size_error();
+                msleep(100);
+            }
+
+            // If user left with 'Q'
+            if (is_screen_too_small()) {
+                endwin();
+                return 1;
+            }
+        }
 
     initialize_processes();
 
@@ -40,6 +63,13 @@ int main() {
     int running = 0;
 
     while ((ch = getch()) != 'q') {
+        update_screen_size();
+
+        if (is_screen_too_small()) {
+            show_screen_size_error();
+            continue;
+        }
+
         switch (ch) {
             case ' ':
                 running = !running;

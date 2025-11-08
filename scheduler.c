@@ -1,14 +1,6 @@
 #include "scheduler.h"
-#include <stdbool.h>
+#include "globals.h"
 #include <stdlib.h>
-
-Process processes[MAX_PROCESSES];
-int quantum = 2;
-int overhead_time = 1;
-int num_processes = 0;
-int current_time = 0;
-int current_algorithm = 0;
-const char *algorithm_names[] = {"FIFO", "SJF", "EDF", "Round Robin"};
 
 void initialize_processes() {
     // Example process 1

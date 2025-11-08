@@ -1,4 +1,5 @@
 #include "ui.h"
+#include "globals.h"
 
 void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y, start_x, "LEGEND:");
@@ -84,11 +85,43 @@ void draw_gantt_chart(int start_y, int start_x) {
     }
 }
 
-void draw_interface() {
-    int screen_height, screen_width;
-    getmaxyx(stdscr, screen_height, screen_width);
-
+void show_screen_size_error() {
     clear();
+
+    // Central error message
+    int center_y = screen_height / 2;
+    int center_x = screen_width / 2;
+
+    attron(A_BOLD | COLOR_PAIR(4)); // Bold Red
+    mvaddstr(center_y - 2, center_x - 12, "                        ");
+    mvaddstr(center_y - 1, center_x - 12, "    SCREEN TOO SMALL!   ");
+    mvaddstr(center_y,     center_x - 12, "                        ");
+    attroff(A_BOLD | COLOR_PAIR(4));
+
+    // Detailed information
+    mvprintw(center_y + 2, center_x - 15, "Required minimum: 90 x 30");
+    mvprintw(center_y + 3, center_x - 15, "Current size:     %2d x %2d", screen_width, screen_height);
+    mvprintw(center_y + 4, center_x - 15, "Available time:   %2d units", TOTAL_TIME);
+
+    // Instructions
+    attron(A_BOLD);
+    mvaddstr(center_y + 6, center_x - 10, "Please resize your terminal");
+    mvaddstr(center_y + 7, center_x - 8, "or press 'Q' to quit");
+    attroff(A_BOLD);
+
+    refresh();
+}
+
+void draw_interface() {
+    clear();
+
+    if (is_screen_too_small()) {
+        show_screen_size_error();
+        return;
+    }
+
+    int center_x = screen_width / 2;
+    int center_y = screen_height / 2;
 
     // Title
     attron(A_BOLD);
@@ -120,7 +153,18 @@ void draw_interface() {
     }
 
     // Current time indicator
-    mvprintw(27, 2, "Current Time: %d", current_time);
+    mvprintw(24+num_processes, 2, "Current Time: %d", current_time);
 
     refresh();
+}
+
+bool check_screen_size() {
+    if (screen_height < 24 || screen_width < 80) {
+        clear();
+        mvaddstr(0, 0, "ERROR: Screen too small!");
+        mvprintw(1, 0, "Required: 80x24, Current: %dx%d", screen_width, screen_height);
+        refresh();
+        return false;
+    }
+    return true;
 }
