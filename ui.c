@@ -86,6 +86,9 @@ void draw_gantt_chart(int start_y, int start_x) {
                     case COMPLETED:
                         color = 1; // Gray
                         break;
+                    case DEADLINE_MISSED:
+                        color = 6; // White Bold
+                        break;
                 }
             }
 

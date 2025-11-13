@@ -192,11 +192,16 @@ void execute_edf() {
                 if (overhead_remaining == 0) {
                     processes[i].overhead = false;
                 }
-            }
-            else if (i == running_process && running_process != -1) {
-                processes[i].timeline[t] = EXECUTING;
-                processes[i].remaining_time--;
-                current_quantum++;
+            } else if (i == running_process && running_process != -1) {
+                if (t - processes[i].arrival_time >= processes[i].deadline) {
+                    processes[i].timeline[t] = DEADLINE_MISSED;
+                    processes[i].remaining_time--;
+                    current_quantum++;
+                } else {
+                    processes[i].timeline[t] = EXECUTING;
+                    processes[i].remaining_time--;
+                    current_quantum++;
+                }
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {

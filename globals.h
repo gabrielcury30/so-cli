@@ -13,7 +13,8 @@ typedef enum {
     EXECUTING = 1,
     OVERHEAD = 2,
     WAITING = 3,
-    COMPLETED = 4
+    COMPLETED = 4,
+    DEADLINE_MISSED = 5
 } ProcessState;
 
 // Process structure
