@@ -6,6 +6,7 @@ void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y + 2, start_x, "[  ] - Executing");
     mvaddstr(start_y + 3, start_x, "[  ] - Waiting");
     mvaddstr(start_y + 4, start_x, "[  ] - Overhead");
+    mvaddstr(start_y + 5, start_x, "[  ] - Deadline Missed");
 
     // Legend colors
     attron(COLOR_PAIR(2));
@@ -19,6 +20,10 @@ void draw_legend(int start_y, int start_x) {
     attron(COLOR_PAIR(4));
     mvaddstr(start_y + 4, start_x + 1, "  ");
     attroff(COLOR_PAIR(4));
+
+    attron(COLOR_PAIR(6) | A_BOLD);
+    mvaddstr(start_y + 5, start_x + 1, "  ");
+    attroff(COLOR_PAIR(6) | A_BOLD);
 }
 
 void draw_gantt_chart(int start_y, int start_x) {
@@ -80,6 +85,9 @@ void draw_gantt_chart(int start_y, int start_x) {
                         break;
                     case COMPLETED:
                         color = 1; // Gray
+                        break;
+                    case DEADLINE_MISSED:
+                        color = 6; // White Bold
                         break;
                 }
             }
