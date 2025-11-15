@@ -196,6 +196,10 @@ void edit_process_screen() {
                     processes[num_processes].remaining_time = 1;
                     processes[num_processes].deadline = 10;
                     processes[num_processes].priority = 1;
+                    processes[num_processes].final_status = PS_PENDING;
+                    for (int m = 0; m < MI_COUNT; m++) {
+                        processes[num_processes].metrics[m] = 0;
+                    }
                     num_processes++;
                     selected_process = num_processes - 1;
                 }
@@ -203,10 +207,31 @@ void edit_process_screen() {
             case 'd':
             case 'D':
                 if (num_processes > 1) {
+                    // Free timeline of the removed process (if allocated)
+                    if (processes[selected_process].timeline) {
+                        free(processes[selected_process].timeline);
+                        processes[selected_process].timeline = NULL;
+                    }
+
+                    // Shift remaining processes left
                     for (int i = selected_process; i < num_processes - 1; i++) {
                         processes[i] = processes[i + 1];
                         processes[i].id = i + 1;
                     }
+
+                    // Clear the now-unused last slot to avoid dangling pointers
+                    processes[num_processes - 1].timeline = NULL;
+                    processes[num_processes - 1].id = 0;
+                    processes[num_processes - 1].arrival_time = 0;
+                    processes[num_processes - 1].execution_time = 0;
+                    processes[num_processes - 1].remaining_time = 0;
+                    processes[num_processes - 1].priority = 0;
+                    processes[num_processes - 1].deadline = 0;
+                    processes[num_processes - 1].final_status = PS_PENDING;
+                    for (int m = 0; m < MI_COUNT; m++) {
+                        processes[num_processes - 1].metrics[m] = 0;
+                    }
+
                     num_processes--;
                     if (selected_process >= num_processes) {
                         selected_process = num_processes - 1;

@@ -25,6 +25,8 @@ int visible_columns = 21;
 // Controls and state
 bool simulation_running = false;
 int animation_speed = 100; // ms
+bool metrics_computed = false;
+SummaryStats summary_stats = {0};
 
 // Global functions implementation
 void update_screen_size() {
@@ -56,5 +58,9 @@ void initialize_globals() {
         processes[i].deadline = 0;
         processes[i].overhead = false;
         processes[i].timeline = NULL;
+        processes[i].final_status = PS_PENDING;
+        for (int m = 0; m < MI_COUNT; m++) {
+            processes[i].metrics[m] = 0;
+        }
     }
 }
