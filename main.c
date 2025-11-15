@@ -33,8 +33,7 @@ int main() {
     init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Waiting Yellow
     init_pair(4, COLOR_BLACK, COLOR_RED);      // Overhead Red
     init_pair(5, COLOR_BLACK, COLOR_WHITE);    // Contrast White
-    init_pair(6, COLOR_BLACK, COLOR_WHITE);     // Deadline Missed White
-
+    init_pair(6, COLOR_BLACK, COLOR_WHITE);  // Deadline Missed
     show_configuration_screen();
 
     if (num_processes == 0) {

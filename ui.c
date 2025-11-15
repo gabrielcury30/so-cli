@@ -7,6 +7,7 @@ void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y + 3, start_x, "[  ] - Waiting");
     mvaddstr(start_y + 4, start_x, "[  ] - Overhead");
     mvaddstr(start_y + 5, start_x, "[  ] - Deadline Missed");
+    mvaddstr(start_y + 6, start_x, "[ | ] - Absolute Deadline");
 
     // Legend colors
     attron(COLOR_PAIR(2));
@@ -21,9 +22,9 @@ void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y + 4, start_x + 1, "  ");
     attroff(COLOR_PAIR(4));
 
-    attron(COLOR_PAIR(6) | A_BOLD);
+    attron(COLOR_PAIR(6));
     mvaddstr(start_y + 5, start_x + 1, "  ");
-    attroff(COLOR_PAIR(6) | A_BOLD);
+    attroff(COLOR_PAIR(6));
 }
 
 void draw_gantt_chart(int start_y, int start_x) {
@@ -103,6 +104,15 @@ void draw_gantt_chart(int start_y, int start_x) {
                 mvaddch(start_y + 2 + i, screen_col + w, cell_char);
             }
             attroff(COLOR_PAIR(color));
+
+            // Aqui considera o deadline absoluto de cada processo pelo calculo em abs_dead,
+            // Desenha um marcador vertical imediatamente a direita do quadrado e rotula com o id do processo.
+            int abs_dead = (processes[i].arrival_time + processes[i].deadline) - 1;
+            // A condicao garante que o marcador so apareca no algoritmo EDF
+            if (t == abs_dead && current_algorithm == 2) {
+                int marker_col = screen_col + (CELL_WIDTH - 1); // Coluna imediatamente após o quadrado
+                mvaddch(start_y + 2 + i, marker_col, ACS_VLINE);
+            }
 
             if (t == current_time) {
                 attroff(A_BOLD);
