@@ -184,8 +184,126 @@ void draw_interface() {
                 processes[i].execution_time, processes[i].deadline);
     }
 
-    // Current time indicator
-    mvprintw(25 + num_processes, 2, "Current Time: %d", current_time);
+    // Metrics table (shown after simulation finishes / when computed)
+    int metrics_start_y = 25 + num_processes;
+    if (metrics_computed) {
+        // Title
+        attron(A_BOLD);
+        mvprintw(metrics_start_y, 2, "METRICAS:");
+        attroff(A_BOLD);
+
+        // Decorative separator under title
+        mvaddstr(metrics_start_y + 1, 2, "------------------------------------------------------------------------------------");
+
+        // Table layout parameters
+        int left_w = 18;      // width for metric name column
+        int col_w = 12;       // width per process column
+        int max_cols = 6;     // show up to 6 process columns
+
+        // Table starting position and dimensions (robust borders and cells)
+        int table_start_x = 2;
+        int top = metrics_start_y + 2;          // top border row
+        int header_row = top + 1;               // header row (process IDs)
+        int first_metric_row = header_row + 1;  // first metric row
+        int table_width = left_w + max_cols * col_w; // total inner width
+
+        // Draw top border
+        mvaddch(top, table_start_x, ACS_ULCORNER);
+        for (int x = table_start_x + 1; x < table_start_x + table_width; x++) mvaddch(top, x, ACS_HLINE);
+        mvaddch(top, table_start_x + table_width, ACS_URCORNER);
+
+        // Draw header row vertical separators and left empty header cell
+        mvaddch(header_row, table_start_x, ACS_VLINE);
+        mvprintw(header_row, table_start_x + 1, "%-*s", left_w - 1, "");
+        mvaddch(header_row, table_start_x + left_w, ACS_VLINE);
+        for (int c = 0; c < max_cols; c++) {
+            int col_start = table_start_x + left_w + c * col_w;
+            mvaddch(header_row, col_start + col_w, ACS_VLINE);
+            if (c < num_processes) {
+                mvprintw(header_row, col_start + 1, "%-*s", col_w - 1, "");
+                mvprintw(header_row, col_start + 1, "P%d", processes[c].id);
+            }
+        }
+
+        // Draw horizontal separator under header
+        mvaddch(header_row + 1, table_start_x, ACS_LTEE);
+        for (int x = table_start_x + 1; x < table_start_x + table_width; x++) mvaddch(header_row + 1, x, ACS_HLINE);
+        mvaddch(header_row + 1, table_start_x + table_width, ACS_RTEE);
+
+        // Metric labels (rows) with borders
+        const char *labels[MI_COUNT] = {
+            "chegada", "execucao", "deadline", "prioridade",
+            "inicio(s)", "termino", "espera", "turnaround", "deadline_ok"
+        };
+
+        for (int r = 0; r < MI_COUNT; r++) {
+            // Skip deadline_ok row if not EDF algorithm
+            if (r == MI_DEADLINE_OK && current_algorithm != 2) {
+                continue;
+            }
+
+            int row_y = first_metric_row + r;
+
+            // Left vertical border and metric name
+            mvaddch(row_y, table_start_x, ACS_VLINE);
+            mvprintw(row_y, table_start_x + 1, "%-*s", left_w - 1, labels[r]);
+            mvaddch(row_y, table_start_x + left_w, ACS_VLINE);
+
+            // Cells per process
+            for (int c = 0; c < max_cols; c++) {
+                int col_start = table_start_x + left_w + c * col_w;
+                // content area is col_start +1 .. col_start + col_w -1
+                if (c < num_processes) {
+                    int *m = processes[c].metrics;
+                    if (r == MI_START) {
+                        if (m[MI_START] < 0) mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, "");
+                        else mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[MI_START]);
+                    } else if (r == MI_END) {
+                        if (m[MI_END] <= 0) mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, "");
+                        else mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[MI_END]);
+                    } else if (r == MI_DEADLINE_OK) {
+                        mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, m[MI_DEADLINE_OK] ? "SIM" : "NAO");
+                    } else {
+                        mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[r]);
+                    }
+                } else {
+                    mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, " ");
+                }
+                // right vertical border of the cell
+                mvaddch(row_y, col_start + col_w, ACS_VLINE);
+            }
+
+            // draw separator line below this row
+            int sep_y = row_y + 1;
+            if (r < MI_COUNT - 1) {
+                mvaddch(sep_y, table_start_x, ACS_LTEE);
+                for (int x = table_start_x + 1; x < table_start_x + table_width; x++) mvaddch(sep_y, x, ACS_HLINE);
+                mvaddch(sep_y, table_start_x + table_width, ACS_RTEE);
+            } else {
+                // bottom border for last metric row
+                mvaddch(sep_y, table_start_x, ACS_LLCORNER);
+                for (int x = table_start_x + 1; x < table_start_x + table_width; x++) mvaddch(sep_y, x, ACS_HLINE);
+                mvaddch(sep_y, table_start_x + table_width, ACS_LRCORNER);
+            }
+        }
+
+        // Current time indicator placed after the table
+        mvprintw(first_metric_row + MI_COUNT + 2, 2, "Current Time: %d", current_time);
+
+        // Summary statistics (quantitative summary)
+        int summary_y = first_metric_row + MI_COUNT + 4;
+        attron(A_BOLD);
+        mvaddstr(summary_y, 2, "RESUMO QUANTITATIVO:");
+        attroff(A_BOLD);
+
+        mvprintw(summary_y + 1, 2, "Media de Chegada: %.2f  |  Media de Execucao: %.2f  |  Media de Espera: %.2f  |  Media de Turnaround: %.2f",
+                 summary_stats.avg_arrival, summary_stats.avg_execution, summary_stats.avg_wait, summary_stats.avg_turnaround);
+        mvprintw(summary_y + 2, 2, "Throughput: %.4f proc/unid_tempo  |  Ociosidade: %.2f%%  |  Trocas de Contexto: %d",
+                 summary_stats.throughput, summary_stats.idle_percentage, summary_stats.context_switches);
+    } else {
+        // Current time indicator
+        mvprintw(metrics_start_y, 2, "Current Time: %d", current_time);
+    }
 
     refresh();
 }
