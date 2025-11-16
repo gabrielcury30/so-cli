@@ -107,43 +107,48 @@ void compute_summary_stats() {
     summary_stats.avg_wait = total_wait / (double)num_processes;
     summary_stats.avg_turnaround = total_turnaround / (double)num_processes;
 
-    // Throughput: completed processes per unit time
-    if (TOTAL_TIME > 0) {
-        summary_stats.throughput = completed_count / (double)TOTAL_TIME;
+    // Determine simulation end time as the latest process end (fallback to TOTAL_TIME)
+    int sim_end = 0;
+    for (int i = 0; i < num_processes; i++) {
+        int endt = processes[i].metrics[MI_END];
+        if (endt > sim_end) sim_end = endt;
+    }
+    if (sim_end <= 0) sim_end = TOTAL_TIME;
+
+    // Throughput: number of processes divided by simulation total time
+    if (sim_end > 0) {
+        summary_stats.throughput = num_processes / (double)sim_end;
+    } else {
+        summary_stats.throughput = 0;
     }
 
-    // Count idle time and context switches (only count when OVERHEAD occurs)
-    int idle_time = 0;
-
-    for (int t = 0; t < TOTAL_TIME; t++) {
-        int executing_process = -1;
+    // Count context switch events: count the number of times an OVERHEAD period starts
+    summary_stats.context_switches = 0;
+    bool prev_overhead = false;
+    for (int t = 0; t < sim_end; t++) {
         bool has_overhead = false;
-
-        // Find which process (if any) is executing at time t and check for overhead
         for (int i = 0; i < num_processes; i++) {
-            if (processes[i].timeline) {
-                if (processes[i].timeline[t] == EXECUTING) {
-                    executing_process = i;
-                }
-                if (processes[i].timeline[t] == OVERHEAD) {
-                    has_overhead = true;
-                }
+            if (processes[i].timeline && processes[i].timeline[t] == OVERHEAD) {
+                has_overhead = true;
+                break;
             }
         }
-
-        // Count idle time
-        if (executing_process == -1 && !has_overhead) {
-            idle_time++;
-        }
-
-        // Count context switches: only when OVERHEAD occurs (represents forced context switch)
-        if (has_overhead) {
+        if (has_overhead && !prev_overhead) {
             summary_stats.context_switches++;
         }
+        prev_overhead = has_overhead;
     }
 
-    // Calculate idle percentage
-    if (TOTAL_TIME > 0) {
-        summary_stats.idle_percentage = (idle_time / (double)TOTAL_TIME) * 100.0;
+    // Calculate idle percentage using total useful time + overhead time
+    // Total useful execution time is sum of declared execution times (total_execution)
+    double time_sobrecarga = summary_stats.context_switches * (double)overhead_time;
+    double total_non_idle = total_execution + time_sobrecarga;
+
+    double idle_pct = 0.0;
+    if (sim_end > 0) {
+        double idle_time = sim_end - total_non_idle;
+        if (idle_time < 0) idle_time = 0;
+        idle_pct = (idle_time / (double)sim_end) * 100.0;
     }
+    summary_stats.idle_percentage = idle_pct;
 }
