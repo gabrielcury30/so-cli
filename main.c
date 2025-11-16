@@ -124,6 +124,12 @@ int main() {
                 reset_simulation();
                 running = 0;
                 break;
+
+            case KEY_F(5):
+                current_algorithm = 4;
+                reset_simulation();
+                running = 0;
+                break;
         }
 
         draw_interface();

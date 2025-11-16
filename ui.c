@@ -169,7 +169,7 @@ void draw_interface() {
 
     // Controls
     mvaddstr(15, 2, "CONTROLS:");
-    mvaddstr(16, 2, "F1-F4: Select algorithm (FIFO, SJF, EDF, RR)");
+    mvaddstr(16, 2, "F1-F5: Select algorithm (FIFO, SJF, EDF, RR, CFS)");
     mvaddstr(17, 2, "SPACE: Run/Reset simulation");
     mvaddstr(18, 2, "RIGHT|RIGHT ARROW: Advance or go back in time");
     mvaddstr(19, 2, "A|D: Scroll chart left and right");

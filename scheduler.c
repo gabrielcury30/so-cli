@@ -282,12 +282,115 @@ void execute_rr() {
     }
 }
 
+void execute_cfs() {
+    int running_process = -1;
+    int process_completed = 0;
+    int overhead_remaining = 0;
+
+    // Initialize vruntime for all processes
+    for (int i = 0; i < num_processes; i++) {
+        processes[i].remaining_time = processes[i].execution_time;
+        processes[i].vruntime = 0.0;
+        processes[i].overhead = false;
+        for (int t = 0; t < TOTAL_TIME; t++) {
+            processes[i].timeline[t] = NOT_ARRIVED;
+        }
+    }
+
+    for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
+        // Check if current process finished or needs preemption
+        if (running_process != -1) {
+            bool has_finished = (processes[running_process].remaining_time <= 0);
+
+            if (has_finished) {
+                process_completed++;
+                running_process = -1;
+            } else {
+                // Check if preemption is needed (another process has lower vruntime)
+                double current_vruntime = processes[running_process].vruntime;
+                int preempt_candidate = -1;
+
+                for (int i = 0; i < num_processes; i++) {
+                    if (i != running_process &&
+                        processes[i].arrival_time <= t &&
+                        processes[i].remaining_time > 0 &&
+                        processes[i].vruntime < current_vruntime) {
+                        preempt_candidate = i;
+                        break;
+                    }
+                }
+
+                // If preemption needed, mark overhead for current process
+                if (preempt_candidate != -1) {
+                    processes[running_process].overhead = true;
+                    overhead_remaining = overhead_time;
+                    running_process = -1;
+                }
+            }
+        }
+
+        // Get next process from ready queue if no process is running and overhead finished
+        if (running_process == -1 && overhead_remaining == 0) {
+            double min_vruntime = 1e9;
+            int selected_process = -1;
+
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t &&
+                    processes[i].remaining_time > 0 &&
+                    processes[i].vruntime < min_vruntime) {
+                    min_vruntime = processes[i].vruntime;
+                    selected_process = i;
+                }
+            }
+
+            running_process = selected_process;
+        }
+
+        // Update states for all processes
+        for (int i = 0; i < num_processes; i++) {
+            // First, handle overhead state
+            if (processes[i].overhead) {
+                processes[i].timeline[t] = OVERHEAD;
+                overhead_remaining--;
+                if (overhead_remaining == 0) {
+                    processes[i].overhead = false;
+                }
+            }
+            // Then handle execution state
+            else if (i == running_process && running_process != -1) {
+                processes[i].timeline[t] = EXECUTING;
+                
+                // Delta T: real CPU time used (only for EXECUTING, not OVERHEAD)
+                int delta_t = 1;  // 1 unit of CPU time this timeslice
+                
+                // Calculate weight based on priority: w(priority) = 1.25^(priority-1)
+                double priority_weight = pow(1.25, processes[i].priority - 1);
+                
+                // Update vruntime: vruntime += delta_t * w(priority)
+                processes[i].vruntime += delta_t * priority_weight;
+                
+                // Decrease remaining time (only during actual execution)
+                processes[i].remaining_time--;
+            }
+            // Then handle waiting/other states
+            else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
+                processes[i].timeline[t] = WAITING;
+            } else if (processes[i].arrival_time > t) {
+                processes[i].timeline[t] = NOT_ARRIVED;
+            } else {
+                processes[i].timeline[t] = COMPLETED;
+            }
+        }
+    }
+}
+
 void run_current_algorithm() {
     switch (current_algorithm) {
         case 0: execute_fifo(); break;
         case 1: execute_sjf(); break;
         case 2: execute_edf(); break;
         case 3: execute_rr(); break;
+        case 4: execute_cfs(); break;
     }
     // After running the chosen algorithm compute the summary metrics
     compute_metrics_for_all();

@@ -58,6 +58,7 @@ typedef struct {
     int priority;
     int deadline;
     bool overhead;
+    double vruntime;  // Virtual runtime for CFS algorithm
     ProcessState *timeline;
     // Metrics array (9 positions): chegada, execucao, deadline, prioridade,
     // inicio(s), termino, espera, turnaround, deadline_ok?
