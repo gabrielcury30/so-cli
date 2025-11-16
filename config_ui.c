@@ -329,8 +329,8 @@ void show_main_menu() {
             case KEY_ENTER:
                 switch (selected) {
                     case 0: // Start Simulation
-                        timeout(100);
-                        flushinp();
+                        // timeout(100);
+                        // flushinp();
                         return;
                     case 1: // Configure Processes
                         edit_process_screen();

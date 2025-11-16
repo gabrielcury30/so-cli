@@ -101,6 +101,11 @@ int main() {
                 if (time_offset < 0) time_offset = 0;
                 break;
 
+            case 'm':
+                reset_simulation();
+                show_configuration_screen();
+                break;
+
             case KEY_F(1):
                 current_algorithm = 0;
                 reset_simulation();

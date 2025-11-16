@@ -160,18 +160,19 @@ void draw_interface() {
     mvaddstr(18, 2, "RIGHT|RIGHT ARROW: Advance or go back in time");
     mvaddstr(19, 2, "A|D: Scroll chart left and right");
     mvaddstr(20, 2, "B: Go to start, E: Go to end");
-    mvaddstr(21, 2, "Q: Quit");
+    mvaddstr(21, 2, "M: Configuration Menu");
+    mvaddstr(22, 2, "Q: Quit");
 
     // Process information
-    mvaddstr(23, 2, "PROCESS INFORMATION:");
+    mvaddstr(24, 2, "PROCESS INFORMATION:");
     for (int i = 0; i < num_processes; i++) {
-        mvprintw(24 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d",
+        mvprintw(25 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d",
                 processes[i].id, processes[i].arrival_time,
                 processes[i].execution_time, processes[i].deadline);
     }
 
     // Metrics table (shown after simulation finishes / when computed)
-    int metrics_start_y = 25 + num_processes;
+    int metrics_start_y = 26 + num_processes;
     if (metrics_computed) {
         // Title
         attron(A_BOLD);
