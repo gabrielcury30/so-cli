@@ -126,30 +126,17 @@ void draw_gantt_chart(int start_y, int start_x) {
              start_time, end_time - 1, TOTAL_TIME);
 }
 
-void show_screen_size_error() {
-    clear();
-
-    // Central error message
-    int center_y = screen_height / 2;
-    int center_x = screen_width / 2;
-
-    attron(A_BOLD | COLOR_PAIR(4)); // Bold Red
-    mvaddstr(center_y - 2, center_x - 12, "                        ");
-    mvaddstr(center_y - 1, center_x - 12, "    SCREEN TOO SMALL!   ");
-    mvaddstr(center_y,     center_x - 12, "                        ");
-    attroff(A_BOLD | COLOR_PAIR(4));
-
-    // Detailed information
-    mvprintw(center_y + 2, center_x - 15, "Required minimum: 106 x 33");
-    mvprintw(center_y + 3, center_x - 15, "Current size:     %2d x %2d", screen_width, screen_height);
-
-    // Instructions
-    attron(A_BOLD);
-    mvaddstr(center_y + 6, center_x - 10, "Please resize your terminal");
-    mvaddstr(center_y + 7, center_x - 8, "or press 'Q' to quit");
-    attroff(A_BOLD);
-
-    refresh();
+void draw_deadline_status(int y, int x, int satisfied, int cell_width) {
+    if (satisfied) {
+        // Verde - SIM
+        attron(COLOR_PAIR(2));
+        mvprintw(y, x, "%-*s", cell_width, "");
+        attroff(COLOR_PAIR(2));
+    } else {
+        // Vermelho - NAO
+        attron(COLOR_PAIR(4));
+        mvprintw(y, x, "%-*s", cell_width, "");
+        attroff(COLOR_PAIR(4));
 }
 
 void draw_interface() {
