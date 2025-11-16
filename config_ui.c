@@ -4,28 +4,25 @@
 #include "globals.h"
 #include "ui.h"
 #include "screen_utils.h"
-// Função para mostrar mensagem de erro em local fixo
+
 void show_error_message(const char* message) {
     int screen_height, screen_width;
     getmaxyx(stdscr, screen_height, screen_width);
 
-    // Posição fixa para mensagens de erro (parte inferior da tela)
     int error_y = screen_height - 3;
     int error_x = 2;
 
-    // Limpar área de erro
+    // Clear error area
     for (int i = 0; i < screen_width - 4; i++) {
         mvaddch(error_y, error_x + i, ' ');
     }
 
-    // Mostrar mensagem de erro
     attron(COLOR_PAIR(4) | A_BOLD);
     mvaddstr(error_y, error_x, message);
     attroff(COLOR_PAIR(4) | A_BOLD);
     refresh();
 }
 
-// Função para limpar mensagem de erro
 void clear_error_message() {
     int screen_height, screen_width;
     getmaxyx(stdscr, screen_height, screen_width);

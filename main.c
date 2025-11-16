@@ -32,8 +32,8 @@ int main() {
     init_pair(2, COLOR_BLACK, COLOR_GREEN);    // Executing Green
     init_pair(3, COLOR_BLACK, COLOR_YELLOW);   // Waiting Yellow
     init_pair(4, COLOR_BLACK, COLOR_RED);      // Overhead Red
-    init_pair(5, COLOR_BLACK, COLOR_WHITE);    // Contrast White
-    init_pair(6, COLOR_BLACK, COLOR_WHITE);  // Deadline Missed
+    init_pair(5, COLOR_BLACK, COLOR_WHITE);    // Contrast/Deadline White
+
     show_configuration_screen();
 
     if (num_processes == 0) {
@@ -92,7 +92,7 @@ int main() {
                 }
                 break;
 
-            case 'h': // Home - go to beginning
+            case 'b': // Home - go to beginning
                 time_offset = 0;
                 break;
 

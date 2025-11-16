@@ -59,8 +59,8 @@ typedef struct {
     int deadline;
     bool overhead;
     ProcessState *timeline;
-    // Metrics array (9 positions): chegada, execucao, deadline, prioridade,
-    // inicio(s), termino, espera, turnaround, deadline_ok?
+    // Metrics array (9 positions): arrival, execution, deadline, priority,
+    // start, end, wait, turnaround, deadline_ok?
     int metrics[MI_COUNT];
     // Final status after simulation (completed on time, missed, etc.)
     ProcessStatus final_status;

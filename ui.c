@@ -3,28 +3,28 @@
 
 void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y, start_x, "LEGEND:");
-    mvaddstr(start_y + 2, start_x, "[  ] - Executing");
-    mvaddstr(start_y + 3, start_x, "[  ] - Waiting");
-    mvaddstr(start_y + 4, start_x, "[  ] - Overhead");
-    mvaddstr(start_y + 5, start_x, "[  ] - Deadline Missed");
+    mvaddstr(start_y + 2, start_x, "[   ] - Executing");
+    mvaddstr(start_y + 3, start_x, "[   ] - Waiting");
+    mvaddstr(start_y + 4, start_x, "[   ] - Overhead");
+    mvaddstr(start_y + 5, start_x, "[   ] - Deadline Missed");
     mvaddstr(start_y + 6, start_x, "[ | ] - Absolute Deadline");
 
     // Legend colors
     attron(COLOR_PAIR(2));
-    mvaddstr(start_y + 2, start_x + 1, "  ");
+    mvaddstr(start_y + 2, start_x + 1, "   ");
     attroff(COLOR_PAIR(2));
 
     attron(COLOR_PAIR(3));
-    mvaddstr(start_y + 3, start_x + 1, "  ");
+    mvaddstr(start_y + 3, start_x + 1, "   ");
     attroff(COLOR_PAIR(3));
 
     attron(COLOR_PAIR(4));
-    mvaddstr(start_y + 4, start_x + 1, "  ");
+    mvaddstr(start_y + 4, start_x + 1, "   ");
     attroff(COLOR_PAIR(4));
 
-    attron(COLOR_PAIR(6));
-    mvaddstr(start_y + 5, start_x + 1, "  ");
-    attroff(COLOR_PAIR(6));
+    attron(COLOR_PAIR(5));
+    mvaddstr(start_y + 5, start_x + 1, "   ");
+    attroff(COLOR_PAIR(5));
 }
 
 void draw_gantt_chart(int start_y, int start_x) {
@@ -88,7 +88,7 @@ void draw_gantt_chart(int start_y, int start_x) {
                         color = 1; // Gray
                         break;
                     case DEADLINE_MISSED:
-                        color = 6; // White Bold
+                        color = 5; // White
                         break;
                 }
             }
@@ -128,15 +128,14 @@ void draw_gantt_chart(int start_y, int start_x) {
 
 void draw_deadline_status(int y, int x, int satisfied, int cell_width) {
     if (satisfied) {
-        // Verde - SIM
-        attron(COLOR_PAIR(2));
+        attron(COLOR_PAIR(2)); // Green
         mvprintw(y, x, "%-*s", cell_width, "");
         attroff(COLOR_PAIR(2));
     } else {
-        // Vermelho - NAO
-        attron(COLOR_PAIR(4));
+        attron(COLOR_PAIR(4)); // Red
         mvprintw(y, x, "%-*s", cell_width, "");
         attroff(COLOR_PAIR(4));
+    }
 }
 
 void draw_interface() {
@@ -160,7 +159,7 @@ void draw_interface() {
     mvaddstr(17, 2, "SPACE: Run/Reset simulation");
     mvaddstr(18, 2, "RIGHT|RIGHT ARROW: Advance or go back in time");
     mvaddstr(19, 2, "A|D: Scroll chart left and right");
-    mvaddstr(20, 2, "H: Go to start, E: Go to end");
+    mvaddstr(20, 2, "B: Go to start, E: Go to end");
     mvaddstr(21, 2, "Q: Quit");
 
     // Process information
@@ -176,11 +175,8 @@ void draw_interface() {
     if (metrics_computed) {
         // Title
         attron(A_BOLD);
-        mvprintw(metrics_start_y, 2, "METRICAS:");
+        mvprintw(metrics_start_y, 2, "METRICS:");
         attroff(A_BOLD);
-
-        // Decorative separator under title
-        mvaddstr(metrics_start_y + 1, 2, "------------------------------------------------------------------------------------");
 
         // Table layout parameters
         int left_w = 18;      // width for metric name column
@@ -219,8 +215,8 @@ void draw_interface() {
 
         // Metric labels (rows) with borders
         const char *labels[MI_COUNT] = {
-            "chegada", "execucao", "deadline", "prioridade",
-            "inicio(s)", "termino", "espera", "turnaround", "deadline_ok"
+            "Arrival", "Execution", "Deadline", "Priority",
+            "Start", "End", "Wait", "Turnaround", "Deadline?"
         };
 
         for (int r = 0; r < MI_COUNT; r++) {
@@ -260,7 +256,7 @@ void draw_interface() {
                 mvaddch(row_y, col_start + col_w, ACS_VLINE);
             }
 
-            // draw separator line below this row
+            // Draw separator line below this row
             int sep_y = row_y + 1;
             if (r < MI_COUNT - 1) {
                 mvaddch(sep_y, table_start_x, ACS_LTEE);
@@ -280,12 +276,12 @@ void draw_interface() {
         // Summary statistics (quantitative summary)
         int summary_y = first_metric_row + MI_COUNT + 4;
         attron(A_BOLD);
-        mvaddstr(summary_y, 2, "RESUMO QUANTITATIVO:");
+        mvaddstr(summary_y, 2, "SUMMARY:");
         attroff(A_BOLD);
 
-        mvprintw(summary_y + 1, 2, "Media de Chegada: %.2f  |  Media de Execucao: %.2f  |  Media de Espera: %.2f  |  Media de Turnaround: %.2f",
+        mvprintw(summary_y + 1, 2, "Average Arrival Time: %.2f  |  Average Execution Time: %.2f  |  Average Waiting Time: %.2f  |  Average Turnaround: %.2f",
                  summary_stats.avg_arrival, summary_stats.avg_execution, summary_stats.avg_wait, summary_stats.avg_turnaround);
-        mvprintw(summary_y + 2, 2, "Throughput: %.4f proc/unid_tempo  |  Ociosidade: %.2f%%  |  Trocas de Contexto: %d",
+        mvprintw(summary_y + 2, 2, "Throughput: %.4f process / time unit  |  Idleness: %.2f%%  |  Context Switches: %d",
                  summary_stats.throughput, summary_stats.idle_percentage, summary_stats.context_switches);
     } else {
         // Current time indicator
