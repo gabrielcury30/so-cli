@@ -7,6 +7,7 @@ void initialize_default_processes();
 void execute_fifo();
 void execute_sjf();
 void execute_edf();
+void execute_cfs();
 void execute_rr();
 void run_current_algorithm();
 void reset_simulation();

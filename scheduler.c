@@ -2,6 +2,7 @@
 #include "globals.h"
 #include "metrics_utils.h"
 #include <stdlib.h>
+#include <math.h>
 
 void initialize_default_processes() {
     // Example process 1
@@ -283,11 +284,97 @@ void execute_rr() {
     }
 }
 
+void execute_cfs() {
+    // Completely Fair Scheduler simplified (CFS-Sim)
+    // Each process has a vruntime that increases by dt * w(priority) when running.
+    double vruntime[MAX_PROCESSES];
+    for (int i = 0; i < num_processes; i++) {
+        processes[i].remaining_time = processes[i].execution_time;
+        processes[i].overhead = false;
+        vruntime[i] = 0.0;
+        for (int t = 0; t < TOTAL_TIME; t++) {
+            processes[i].timeline[t] = NOT_ARRIVED;
+        }
+    }
+
+    int running_process = -1;
+    int overhead_remaining = 0;
+
+    for (int t = 0; t < TOTAL_TIME; t++) {
+        // Initialize vruntime on arrival
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].arrival_time == t) {
+                vruntime[i] = (double)t; // start vruntime at current time
+            }
+        }
+
+        // If there's a running process, check if it should be preempted
+        if (running_process != -1 && overhead_remaining == 0) {
+            // find candidate with minimal vruntime among ready
+            int candidate = running_process;
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
+                    if (vruntime[i] < vruntime[candidate]) {
+                        candidate = i;
+                    }
+                }
+            }
+            if (candidate != running_process && vruntime[candidate] < vruntime[running_process]) {
+                // preempt running process -> overhead
+                processes[running_process].overhead = true;
+                overhead_remaining = overhead_time;
+                running_process = -1;
+            }
+        }
+
+        // If no running and no overhead, pick the process with smallest vruntime
+        if (running_process == -1 && overhead_remaining == 0) {
+            int chosen = -1;
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
+                    if (chosen == -1 || vruntime[i] < vruntime[chosen]) {
+                        chosen = i;
+                    }
+                }
+            }
+            running_process = chosen;
+        }
+
+        // Update timelines
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].overhead) {
+                processes[i].timeline[t] = OVERHEAD;
+                overhead_remaining--;
+                if (overhead_remaining == 0) {
+                    processes[i].overhead = false;
+                }
+            } else if (i == running_process && running_process != -1) {
+                processes[i].timeline[t] = EXECUTING;
+                processes[i].remaining_time--;
+                // Update vruntime: dt = 1, weight = 1.25^(priority-1)
+                double weight = pow(1.25, (double)(processes[i].priority - 1));
+                vruntime[i] += 1.0 * weight;
+
+                if (processes[i].remaining_time <= 0) {
+                    running_process = -1;
+                }
+            } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
+                processes[i].timeline[t] = WAITING;
+            } else if (processes[i].arrival_time > t) {
+                processes[i].timeline[t] = NOT_ARRIVED;
+            } else {
+                processes[i].timeline[t] = COMPLETED;
+            }
+        }
+    }
+}
+
 void run_current_algorithm() {
     switch (current_algorithm) {
         case 0: execute_fifo(); break;
         case 1: execute_sjf(); break;
         case 2: execute_edf(); break;
+        case 4: execute_cfs(); break;
         case 3: execute_rr(); break;
     }
 

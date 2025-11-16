@@ -8,7 +8,7 @@ Process processes[MAX_PROCESSES];
 int num_processes = 0;
 int current_time = 0;
 int current_algorithm = 0;
-const char *algorithm_names[] = {"FIFO", "SJF", "EDF", "Round Robin"};
+const char *algorithm_names[] = {"FIFO", "SJF", "EDF", "Round Robin", "CFS-Sim"};
 
 // Scheduler configuration
 int quantum = 2;
