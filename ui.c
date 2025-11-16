@@ -105,12 +105,12 @@ void draw_gantt_chart(int start_y, int start_x) {
             }
             attroff(COLOR_PAIR(color));
 
-            // Aqui considera o deadline absoluto de cada processo pelo calculo em abs_dead,
-            // Desenha um marcador vertical imediatamente a direita do quadrado e rotula com o id do processo.
+            // Here it considers the absolute deadline of each process by the calculation in abs_dead
+            // Draws a vertical marker immediately to the right of the square and labels it with the process ID.
             int abs_dead = (processes[i].arrival_time + processes[i].deadline) - 1;
-            // A condicao garante que o marcador so apareca no algoritmo EDF
+            // This condition ensures that the marker only appears in the EDF
             if (t == abs_dead && current_algorithm == 2) {
-                int marker_col = screen_col + (CELL_WIDTH - 1); // Coluna imediatamente após o quadrado
+                int marker_col = screen_col + (CELL_WIDTH - 1); // Column immediately after the square
                 mvaddch(start_y + 2 + i, marker_col, ACS_VLINE);
             }
 
