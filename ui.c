@@ -220,16 +220,18 @@ void draw_interface() {
         };
 
         for (int r = 0; r < MI_COUNT; r++) {
-            // Skip deadline_ok row if not EDF algorithm
-            if (r == MI_DEADLINE_OK && current_algorithm != 2) {
-                continue;
-            }
-
             int row_y = first_metric_row + r;
 
             // Left vertical border and metric name
             mvaddch(row_y, table_start_x, ACS_VLINE);
-            mvprintw(row_y, table_start_x + 1, "%-*s", left_w - 1, labels[r]);
+
+            // Skip deadline_ok label if not EDF algorithm, but still draw empty space
+            if (r == MI_DEADLINE_OK && current_algorithm != 2) {
+                mvprintw(row_y, table_start_x + 1, "%-*s", left_w - 1, ""); // Empty label
+            } else {
+                mvprintw(row_y, table_start_x + 1, "%-*s", left_w - 1, labels[r]);
+            }
+
             mvaddch(row_y, table_start_x + left_w, ACS_VLINE);
 
             // Cells per process
@@ -238,14 +240,17 @@ void draw_interface() {
                 // content area is col_start +1 .. col_start + col_w -1
                 if (c < num_processes) {
                     int *m = processes[c].metrics;
-                    if (r == MI_START) {
+                    if (r == MI_DEADLINE_OK && current_algorithm != 2) {
+                        // Empty cell for deadline_ok when not EDF
+                        mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, "");
+                    } else if (r == MI_START) {
                         if (m[MI_START] < 0) mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, "");
                         else mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[MI_START]);
                     } else if (r == MI_END) {
                         if (m[MI_END] <= 0) mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, "");
                         else mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[MI_END]);
                     } else if (r == MI_DEADLINE_OK) {
-                        mvprintw(row_y, col_start + 1, "%-*s", col_w - 1, m[MI_DEADLINE_OK] ? "SIM" : "NAO");
+                        draw_deadline_status(row_y, col_start + 1, m[MI_DEADLINE_OK], col_w - 1);
                     } else {
                         mvprintw(row_y, col_start + 1, "%-*d", col_w - 1, m[r]);
                     }
