@@ -1,12 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 -D_POSIX_C_SOURCE=199309L
-<<<<<<< Updated upstream
-LIBS = -lncurses
-SOURCES = main.c scheduler.c ui.c globals.c config_ui.c screen_utils.c
-=======
 LIBS = -lncurses -lm
-SOURCES = main.c scheduler.c ui.c globals.c config_ui.c screen_utils.c metrics_utils.c
->>>>>>> Stashed changes
+SOURCES = main.c scheduler.c ui.c globals.c config_ui.c screen_utils.c
 OBJECTS = $(SOURCES:.c=.o)
 TARGET = scheduler
 
