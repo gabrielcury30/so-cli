@@ -164,15 +164,15 @@ void draw_interface() {
     mvaddstr(22, 2, "Q: Quit");
 
     // Process information
-    mvaddstr(24, 2, "PROCESS INFORMATION:");
-    for (int i = 0; i < num_processes; i++) {
-        mvprintw(25 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d",
-                processes[i].id, processes[i].arrival_time,
-                processes[i].execution_time, processes[i].deadline);
-    }
+    // mvaddstr(24, 2, "PROCESS INFORMATION:");
+    // for (int i = 0; i < num_processes; i++) {
+    //     mvprintw(25 + i, 2, "P%d: Arrival=%d, Execution=%d, Deadline=%d",
+    //             processes[i].id, processes[i].arrival_time,
+    //             processes[i].execution_time, processes[i].deadline);
+    // }
 
     // Metrics table (shown after simulation finishes / when computed)
-    int metrics_start_y = 26 + num_processes;
+    int metrics_start_y = 24;
     if (metrics_computed) {
         // Title
         attron(A_BOLD);
