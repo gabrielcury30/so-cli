@@ -8,7 +8,7 @@ Process processes[MAX_PROCESSES];
 int num_processes = 0;
 int current_time = 0;
 int current_algorithm = 0;
-const char *algorithm_names[] = {"FIFO", "SJF", "EDF", "Round Robin"};
+const char *algorithm_names[] = {"FIFO", "SJF", "EDF", "Round Robin", "CFS"};
 
 // Scheduler configuration
 int quantum = 2;
@@ -49,6 +49,7 @@ void initialize_globals() {
         processes[i].priority = 0;
         processes[i].deadline = 0;
         processes[i].overhead = false;
+        processes[i].vruntime = 0.0;
         processes[i].timeline = NULL;
         processes[i].final_status = PS_PENDING;
         for (int m = 0; m < MI_COUNT; m++) {

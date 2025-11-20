@@ -283,12 +283,135 @@ void execute_rr() {
     }
 }
 
+void execute_cfs() {
+    int running_process = -1; 
+    int process_completed = 0;
+    int overhead_remaining = 0; 
+    int preempted_process = -1; 
+    const double EPSILON = 1e-9; // Tolerância para comparação de double
+    
+    // 1. Inicialização (Presumindo que esta parte é feita antes da chamada, mas mantida para completude)
+    for (int i = 0; i < num_processes; i++) {
+        processes[i].remaining_time = processes[i].execution_time;
+        processes[i].vruntime = -1.0; 
+        for (int t = 0; t < TOTAL_TIME; t++) {
+            processes[i].timeline[t] = NOT_ARRIVED;
+        }
+    }
+
+    // 2. Loop Principal de Tempo
+    for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
+
+        // --- A. Chegada de Processos (REGRA 1 ORIGINAL) ---
+        // vruntime = tempo_atual na chegada
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].arrival_time == t && processes[i].vruntime < 0) {
+                processes[i].vruntime = (double)t;
+            }
+        }
+        
+        // --- B. Consumir Overhead ---
+        if (overhead_remaining > 0) {
+            // Marca o tempo atual como OVERHEAD
+            for (int i = 0; i < num_processes; i++) {
+                if (i == preempted_process) {
+                    processes[i].timeline[t] = OVERHEAD;
+                } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
+                    processes[i].timeline[t] = WAITING; 
+                } else if (processes[i].remaining_time <= 0) {
+                    processes[i].timeline[t] = COMPLETED;
+                }
+            }
+            overhead_remaining--;
+            running_process = -1; 
+            if (overhead_remaining == 0) {
+                preempted_process = -1;
+            }
+            continue; 
+        }
+
+        // --- C. Checagem de Término ---
+        if (running_process != -1 && processes[running_process].remaining_time <= 0) {
+            process_completed++;
+            running_process = -1;
+        }
+        
+        // --- D. Seleção (O de menor vruntime - Desempate por Maior Índice) ---
+        int selected_process = -1;
+        double min_vruntime_prontos = -1.0;
+        
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].arrival_time <= t && processes[i].remaining_time > 0 && processes[i].vruntime >= 0.0) {
+                
+                // Seleção: Estritamente menor OU Empate + Maior índice (i > selected_process)
+                if (selected_process == -1 || 
+                    processes[i].vruntime < min_vruntime_prontos - EPSILON || 
+                    (fabs(processes[i].vruntime - min_vruntime_prontos) < EPSILON && i > selected_process)) 
+                {
+                    min_vruntime_prontos = processes[i].vruntime;
+                    selected_process = i;
+                }
+            }
+        }
+        
+        // --- E. Lógica de Decisão (Preempção e Troca com Overhead) ---
+        
+        int current_rp = running_process; 
+        running_process = selected_process; 
+        
+        // Se havia um processo rodando ANTES e o novo processo SELECIONADO é diferente
+        if (current_rp != -1 && selected_process != current_rp) {
+            
+            // Condição de Preempção Estrita (RP > SP + EPSILON)
+            int is_strict_preemption = (processes[current_rp].vruntime > processes[selected_process].vruntime + EPSILON);
+            
+            // Condição de Empate (Necessária para forçar o overhead na troca por empate)
+            int is_tie_switch = (fabs(processes[current_rp].vruntime - processes[selected_process].vruntime) < EPSILON);
+            
+            // Se houver preempção ESTRITA OU se for uma TROCA causada por empate
+            if (is_strict_preemption || is_tie_switch) 
+            {
+                overhead_remaining = overhead_time;
+                preempted_process = current_rp; 
+                running_process = -1; 
+                t--; // Decrementa o tempo para que o processo selecionado rode no próximo tick (após o overhead)
+                continue; 
+            }
+        }
+        
+        // --- F. Execução ---
+        if (running_process != -1) {
+            int i = running_process;
+            processes[i].timeline[t] = EXECUTING;
+            
+            int delta_t = 1; 
+            // Regra 2: Cálculo do vruntime: vruntime_i = vruntime_i + Delta_t * w(prioridade_i)
+            double priority_weight = pow(1.25, (double)processes[i].priority - 1.0);
+            processes[i].vruntime += delta_t * priority_weight; 
+            processes[i].remaining_time--;
+        }
+
+        // --- G. Atualização dos Outros Processos ---
+        for (int i = 0; i < num_processes; i++) {
+            if (processes[i].timeline[t] != EXECUTING && processes[i].timeline[t] != OVERHEAD) {
+                if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) 
+                    processes[i].timeline[t] = WAITING;
+                else if (processes[i].remaining_time <= 0) 
+                    processes[i].timeline[t] = COMPLETED;
+                else if (processes[i].arrival_time > t) 
+                    processes[i].timeline[t] = NOT_ARRIVED;
+            }
+        }
+    }
+}
+
 void run_current_algorithm() {
     switch (current_algorithm) {
         case 0: execute_fifo(); break;
         case 1: execute_sjf(); break;
         case 2: execute_edf(); break;
         case 3: execute_rr(); break;
+        case 4: execute_cfs(); break;
     }
 
     // After running the chosen algorithm compute the summary metrics
