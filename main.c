@@ -92,7 +92,7 @@ int main() {
                 }
                 break;
 
-            case 'b': // Home - go to beginning
+            case 'h': // Home - go to beginning
                 time_offset = 0;
                 break;
 

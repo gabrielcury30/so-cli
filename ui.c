@@ -159,7 +159,7 @@ void draw_interface() {
     mvaddstr(17, 2, "SPACE: Run/Reset simulation");
     mvaddstr(18, 2, "RIGHT|RIGHT ARROW: Advance or go back in time");
     mvaddstr(19, 2, "A|D: Scroll chart left and right");
-    mvaddstr(20, 2, "B: Go to start, E: Go to end");
+    mvaddstr(20, 2, "H: Go to start, E: Go to end");
     mvaddstr(21, 2, "M: Configuration Menu");
     mvaddstr(22, 2, "Q: Quit");
 
