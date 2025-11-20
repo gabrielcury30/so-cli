@@ -3,3 +3,6 @@ scheduler
 
 # Objects
 *.o
+
+# Vscode
+.vscode
