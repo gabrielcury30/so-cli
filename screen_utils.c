@@ -8,7 +8,7 @@ void update_screen_size() {
 }
 
 bool is_screen_too_small() {
-    return (screen_width < 125 || screen_height < 52 || TOTAL_TIME < 15);
+    return (screen_width < 125 || screen_height < 45 || TOTAL_TIME < 15);
 }
 
 void show_screen_size_error() {
@@ -25,7 +25,7 @@ void show_screen_size_error() {
     attroff(A_BOLD | COLOR_PAIR(4));
 
     // Detailed information
-    mvprintw(center_y + 2, center_x - 15, "Required minimum: 125 x 52");
+    mvprintw(center_y + 2, center_x - 15, "Required minimum: 125 x 45");
     mvprintw(center_y + 3, center_x - 15, "Current size:     %2d x %2d", screen_width, screen_height);
 
     // Instructions
