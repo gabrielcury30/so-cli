@@ -3,6 +3,10 @@
 #include "metrics_utils.h"
 #include <stdlib.h>
 
+bool has_executing_process(int running_process) {
+    return running_process != -1;
+}
+
 void initialize_default_processes() {
     // Example process 1
     processes[0].id = 1;
@@ -169,7 +173,7 @@ void execute_edf() {
         }
 
         // Get next process (EDF selection)
-        if (running_process == -1 && overhead_remaining == 0) {
+        if (!has_executing_process(running_process) && overhead_remaining == 0) {
             int earliest_deadline = TOTAL_TIME + 1;
             running_process = -1;
 
@@ -193,7 +197,7 @@ void execute_edf() {
                 if (overhead_remaining == 0) {
                     processes[i].overhead = false;
                 }
-            } else if (i == running_process && running_process != -1) {
+            } else if (i == running_process && has_executing_process(running_process)) {
                 if (t - processes[i].arrival_time >= processes[i].deadline) {
                     processes[i].timeline[t] = DEADLINE_MISSED;
                     processes[i].remaining_time--;
@@ -232,7 +236,7 @@ void execute_rr() {
         }
 
         // Check if current process finished its quantum or completed
-        if (running_process != -1) {
+        if (has_executing_process(running_process)) {
             bool needs_preemption = (current_quantum >= quantum);
             bool has_finished = (processes[running_process].remaining_time <= 0);
 
@@ -249,7 +253,7 @@ void execute_rr() {
         }
 
         // Get next process from queue
-        if (running_process == -1 && queue_size > 0 && overhead_remaining == 0) {
+        if (!has_executing_process(running_process) && queue_size > 0 && overhead_remaining == 0) {
             running_process = process_queue[0];
             // Remove from queue
             for (int i = 0; i < queue_size - 1; i++) {
@@ -268,7 +272,7 @@ void execute_rr() {
                     processes[i].overhead = false;
                 }
             }
-            else if (i == running_process && running_process != -1) {
+            else if (i == running_process && has_executing_process(running_process)) {
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
                 current_quantum++;
@@ -309,7 +313,6 @@ void execute_cfs() {
         }
 
         if (overhead_remaining > 0) {
-            // Marca o tempo atual como OVERHEAD
             for (int i = 0; i < num_processes; i++) {
                 if (i == preempted_process) {
                     processes[i].timeline[t] = OVERHEAD;
@@ -327,8 +330,7 @@ void execute_cfs() {
             continue; 
         }
 
-        // --- C. Checagem de Término ---
-        if (running_process != -1 && processes[running_process].remaining_time <= 0) {
+        if (has_executing_process(running_process) && processes[running_process].remaining_time <= 0) {
             process_completed++;
             running_process = -1;
         }
@@ -371,9 +373,8 @@ void execute_cfs() {
                 continue;
             }
         }
-        
-        // --- F. Execução ---
-        if (running_process != -1) {
+
+        if (has_executing_process(running_process)) {
             int i = running_process;
             processes[i].timeline[t] = EXECUTING;
 
@@ -384,7 +385,6 @@ void execute_cfs() {
             processes[i].remaining_time--;
         }
 
-        // --- G. Atualização dos Outros Processos ---
         for (int i = 0; i < num_processes; i++) {
             if (processes[i].timeline[t] != EXECUTING && processes[i].timeline[t] != OVERHEAD) {
                 if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) 
