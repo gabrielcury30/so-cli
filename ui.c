@@ -278,6 +278,8 @@ void draw_interface() {
 
         // Current time indicator placed after the table
         mvprintw(first_metric_row + MI_COUNT + 2, 2, "Current Time: %d", current_time);
+        mvprintw(first_metric_row + MI_COUNT + 2, 20, "Quantum: %d", quantum);
+        mvprintw(first_metric_row + MI_COUNT + 2, 34, "Overhead: %d", overhead_time);
 
         // Summary statistics (quantitative summary)
         int summary_y = first_metric_row + MI_COUNT + 4;
