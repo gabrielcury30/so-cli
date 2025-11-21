@@ -6,6 +6,10 @@
 
 #define MAX_PROCESSES 6
 #define CELL_WIDTH 3
+#define MAX_PAGES_PER_PROCESS 10
+#define TOTAL_RAM_FRAMES 50
+#define FRAME_SIZE_KB 4
+#define TOTAL_RAM_KB 200
 
 // Process states
 typedef enum {
@@ -14,8 +18,29 @@ typedef enum {
     OVERHEAD = 2,
     WAITING = 3,
     COMPLETED = 4,
-    DEADLINE_MISSED = 5
+    DEADLINE_MISSED = 5,
+    PAGE_FAULT = 6
 } ProcessState;
+
+// Memory replacement policies
+typedef enum {
+    POLICY_FIFO = 0,
+    POLICY_LRU = 1
+} ReplacementPolicy;
+
+// Frame structure (RAM)
+typedef struct {
+    int process_id;      // -1 if free
+    int page_number;     // which page of the process
+    int load_time;       // for FIFO
+    int last_access;     // for LRU
+} Frame;
+
+// Page structure
+typedef struct {
+    bool in_ram;         // true if in RAM, false if in disk
+    int frame_index;     // -1 if not in RAM
+} Page;
 
 // Final status of a process (result after simulation)
 typedef enum {
@@ -35,7 +60,8 @@ typedef enum {
     MI_WAIT = 6,
     MI_TURNAROUND = 7,
     MI_DEADLINE_OK = 8,
-    MI_COUNT = 9
+    MI_PAGE_FAULTS = 9,
+    MI_COUNT = 10
 } MetricsIndex;
 
 // Summary statistics structure
@@ -57,6 +83,7 @@ typedef struct {
     int remaining_time;
     int priority;
     int deadline;
+    int num_pages;  // Number of pages (size) - user configurable
     bool overhead;
     double vruntime;  // Virtual runtime for CFS algorithm
     ProcessState *timeline;
@@ -65,6 +92,13 @@ typedef struct {
     int metrics[MI_COUNT];
     // Final status after simulation (completed on time, missed, etc.)
     ProcessStatus final_status;
+    
+    // Memory management
+    Page pages[MAX_PAGES_PER_PROCESS];
+    int page_faults;
+    int page_fault_remaining;  // time remaining blocked by page fault
+    int next_page_to_access;   // for sequential page access
+    int exec_units_since_page_access;  // counter for page access frequency
 } Process;
 
 // Global variables
@@ -79,6 +113,25 @@ extern const char *algorithm_names[];
 // Scheduler configuration
 extern int quantum;
 extern int overhead_time;
+
+// Memory configuration
+extern bool memory_enabled;
+extern ReplacementPolicy replacement_policy;
+extern Frame ram_frames[TOTAL_RAM_FRAMES];
+extern int current_time_global;
+
+// Memory history for animation (stores state at each time unit)
+#define MAX_HISTORY_SIZE 500
+typedef struct {
+    int process_id;
+    int page_number;
+} FrameSnapshot;
+
+extern FrameSnapshot ram_history[MAX_HISTORY_SIZE][TOTAL_RAM_FRAMES];
+extern bool history_initialized;
+
+// Memory visualization
+extern int memory_animation_frame;  // current frame being displayed
 
 // Screen and interface
 extern int screen_height;

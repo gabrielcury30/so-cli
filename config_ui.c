@@ -119,9 +119,10 @@ void edit_process_screen() {
         // Process list header
         mvaddstr(start_y + 3, start_x + 2, "ID");
         mvaddstr(start_y + 3, start_x + 8, "Arrival");
-        mvaddstr(start_y + 3, start_x + 18, "Execution");
-        mvaddstr(start_y + 3, start_x + 30, "Deadline");
-        mvaddstr(start_y + 3, start_x + 40, "Priority");
+        mvaddstr(start_y + 3, start_x + 18, "Exec");
+        mvaddstr(start_y + 3, start_x + 26, "Deadline");
+        mvaddstr(start_y + 3, start_x + 37, "Priority");
+        mvaddstr(start_y + 3, start_x + 48, "Pages");
 
         // List processes
         for (int i = 0; i < num_processes; i++) {
@@ -132,8 +133,9 @@ void edit_process_screen() {
             mvprintw(start_y + 5 + i, start_x + 2, "P%d", processes[i].id);
             mvprintw(start_y + 5 + i, start_x + 8, "%d", processes[i].arrival_time);
             mvprintw(start_y + 5 + i, start_x + 18, "%d", processes[i].execution_time);
-            mvprintw(start_y + 5 + i, start_x + 30, "%d", processes[i].deadline);
-            mvprintw(start_y + 5 + i, start_x + 40, "%d", processes[i].priority);
+            mvprintw(start_y + 5 + i, start_x + 26, "%d", processes[i].deadline);
+            mvprintw(start_y + 5 + i, start_x + 37, "%d", processes[i].priority);
+            mvprintw(start_y + 5 + i, start_x + 48, "%d", processes[i].num_pages);
 
             if (i == selected_process) {
                 attroff(A_REVERSE | COLOR_PAIR(2));
@@ -173,13 +175,18 @@ void edit_process_screen() {
                         processes[selected_process].execution_time
                     );
                     processes[selected_process].deadline = get_int_input(
-                        start_y + 5 + selected_process, start_x + 28,
+                        start_y + 5 + selected_process, start_x + 24,
                         "", processes[selected_process].arrival_time + 1,
                         TOTAL_TIME * 2, processes[selected_process].deadline
                     );
                     processes[selected_process].priority = get_int_input(
-                        start_y + 5 + selected_process, start_x + 38,
+                        start_y + 5 + selected_process, start_x + 35,
                         "", 1, 10, processes[selected_process].priority
+                    );
+                    processes[selected_process].num_pages = get_int_input(
+                        start_y + 5 + selected_process, start_x + 46,
+                        "", 1, MAX_PAGES_PER_PROCESS,
+                        processes[selected_process].num_pages > 0 ? processes[selected_process].num_pages : 3
                     );
                     processes[selected_process].remaining_time = processes[selected_process].execution_time;
                 }
@@ -187,15 +194,30 @@ void edit_process_screen() {
             case 'a':
             case 'A':
                 if (num_processes < MAX_PROCESSES) {
-                    processes[num_processes].id = num_processes + 1;
-                    processes[num_processes].arrival_time = 0;
-                    processes[num_processes].execution_time = 1;
-                    processes[num_processes].remaining_time = 1;
-                    processes[num_processes].deadline = 10;
-                    processes[num_processes].priority = 1;
-                    processes[num_processes].final_status = PS_PENDING;
+                    int new_idx = num_processes;
+                    processes[new_idx].id = new_idx + 1;
+                    processes[new_idx].arrival_time = 0;
+                    processes[new_idx].execution_time = 1;
+                    processes[new_idx].remaining_time = 1;
+                    processes[new_idx].deadline = 10;
+                    processes[new_idx].priority = 1;
+                    processes[new_idx].final_status = PS_PENDING;
+                    processes[new_idx].timeline = NULL;
+                    processes[new_idx].vruntime = 0.0;
+                    processes[new_idx].overhead = false;
+                    processes[new_idx].num_pages = 3; // Default to 3 pages
+                    processes[new_idx].page_faults = 0;
+                    processes[new_idx].page_fault_remaining = 0;
+                    processes[new_idx].next_page_to_access = 0;
+                    processes[new_idx].exec_units_since_page_access = 0;
+                    
+                    for (int p = 0; p < MAX_PAGES_PER_PROCESS; p++) {
+                        processes[new_idx].pages[p].in_ram = false;
+                        processes[new_idx].pages[p].frame_index = -1;
+                    }
+                    
                     for (int m = 0; m < MI_COUNT; m++) {
-                        processes[num_processes].metrics[m] = 0;
+                        processes[new_idx].metrics[m] = 0;
                     }
                     num_processes++;
                     selected_process = num_processes - 1;
@@ -251,9 +273,10 @@ void show_main_menu() {
         "Start Simulation",
         "Configure Processes",
         "Set Quantum & Overhead",
+        "Memory Configuration",
         "Exit"
     };
-    int menu_size = 4;
+    int menu_size = 5;
 
     while (1) {
         clear();
@@ -308,6 +331,9 @@ void show_main_menu() {
         mvaddstr(start_y + 10, start_x + 2, "Current Configuration:");
         mvprintw(start_y + 11, start_x + 2, "Quantum: %d | Overhead: %d", quantum, overhead_time);
         mvprintw(start_y + 12, start_x + 2, "Total Time: %d | Processes: %d", TOTAL_TIME, num_processes);
+        mvprintw(start_y + 13, start_x + 2, "Memory: %s | Policy: %s",
+                 memory_enabled ? "ON" : "OFF",
+                 replacement_policy == POLICY_FIFO ? "FIFO" : "LRU");
 
         // Controls (centered at bottom)
         mvaddstr(start_y + box_height - 3, start_x + 2, "UP/DOWN: Navigate | ENTER: Select | Q: Quit");
@@ -345,7 +371,25 @@ void show_main_menu() {
                             "Overhead", 1, 5, overhead_time
                         );
                         break;
-                    case 3: // Exit
+                    case 3: // Memory Configuration
+                        {
+                            int mem_choice = 0;
+                            clear();
+                            mvaddstr(5, 5, "Memory Configuration");
+                            mvaddstr(7, 5, "Enable Memory? (0=NO, 1=YES): ");
+                            mem_choice = get_int_input(7, 37, "", 0, 1, memory_enabled ? 1 : 0);
+                            memory_enabled = (mem_choice == 1);
+                            
+                            if (memory_enabled) {
+                                int policy_choice = get_int_input(
+                                    9, 5, "Policy (0=FIFO, 1=LRU)", 0, 1, 
+                                    replacement_policy == POLICY_FIFO ? 0 : 1
+                                );
+                                replacement_policy = (policy_choice == 0) ? POLICY_FIFO : POLICY_LRU;
+                            }
+                        }
+                        break;
+                    case 4: // Exit
                         endwin();
                         exit(0);
                 }
@@ -373,6 +417,12 @@ void show_configuration_screen() {
             free(processes[i].timeline);
         }
         processes[i].timeline = malloc(TOTAL_TIME * sizeof(ProcessState));
+        if (processes[i].timeline == NULL) {
+            // Malloc failed, exit gracefully
+            endwin();
+            fprintf(stderr, "Error: Failed to allocate memory for process timeline\n");
+            exit(1);
+        }
         processes[i].remaining_time = processes[i].execution_time;
         for (int t = 0; t < TOTAL_TIME; t++) {
             processes[i].timeline[t] = NOT_ARRIVED;

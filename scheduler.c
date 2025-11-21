@@ -1,6 +1,7 @@
 #include "scheduler.h"
 #include "globals.h"
 #include "metrics_utils.h"
+#include "memory.h"
 #include <stdlib.h>
 
 bool has_executing_process(int running_process) {
@@ -91,8 +92,15 @@ void execute_fifo() {
         // Update states
         for (int i = 0; i < num_processes; i++) {
             if (i == running_process && running_process != -1) {
+                // Check for page fault (if memory enabled) - but don't show in gantt
+                if (memory_enabled) {
+                    check_page_fault(i);  // Just count, don't affect execution
+                }
+                
+                // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
+                current_time_global = t;
 
                 // Check if process is done
                 if (processes[i].remaining_time <= 0) {
@@ -106,6 +114,11 @@ void execute_fifo() {
             } else {
                 processes[i].timeline[t] = COMPLETED;
             }
+        }
+        
+        // Save memory state for this time unit (for animation)
+        if (memory_enabled) {
+            save_memory_state(t);
         }
     }
 }
@@ -128,8 +141,15 @@ void execute_sjf() {
         // Update states
         for (int i = 0; i < num_processes; i++) {
             if (i == running_process && running_process != -1) {
+                // Check for page fault (if memory enabled) - but don't show in gantt
+                if (memory_enabled) {
+                    check_page_fault(i);  // Just count, don't affect execution
+                }
+                
+                // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
+                current_time_global = t;
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -137,6 +157,11 @@ void execute_sjf() {
             } else {
                 processes[i].timeline[t] = COMPLETED;
             }
+        }
+        
+        // Save memory state for this time unit (for animation)
+        if (memory_enabled) {
+            save_memory_state(t);
         }
     }
 }
@@ -198,6 +223,12 @@ void execute_edf() {
                     processes[i].overhead = false;
                 }
             } else if (i == running_process && has_executing_process(running_process)) {
+                // Check for page fault (if memory enabled) - but don't show in gantt
+                if (memory_enabled) {
+                    check_page_fault(i);  // Just count, don't affect execution
+                }
+                
+                // Normal execution
                 if (t - processes[i].arrival_time >= processes[i].deadline) {
                     processes[i].timeline[t] = DEADLINE_MISSED;
                     processes[i].remaining_time--;
@@ -207,6 +238,7 @@ void execute_edf() {
                     processes[i].remaining_time--;
                     current_quantum++;
                 }
+                current_time_global = t;
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -214,6 +246,11 @@ void execute_edf() {
             } else {
                 processes[i].timeline[t] = COMPLETED;
             }
+        }
+        
+        // Save memory state for this time unit (for animation)
+        if (memory_enabled) {
+            save_memory_state(t);
         }
     }
 }
@@ -273,9 +310,16 @@ void execute_rr() {
                 }
             }
             else if (i == running_process && has_executing_process(running_process)) {
+                // Check for page fault (if memory enabled) - but don't show in gantt
+                if (memory_enabled) {
+                    check_page_fault(i);  // Just count, don't affect execution
+                }
+                
+                // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
                 current_quantum++;
+                current_time_global = t;
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -376,6 +420,13 @@ void execute_cfs() {
 
         if (has_executing_process(running_process)) {
             int i = running_process;
+            
+            // Check for page fault (if memory enabled) - but don't show in gantt
+            if (memory_enabled) {
+                check_page_fault(i);  // Just count, don't affect execution
+            }
+            
+            // Normal execution
             processes[i].timeline[t] = EXECUTING;
 
             int delta_t = 1;
@@ -383,6 +434,8 @@ void execute_cfs() {
             double priority_weight = pow(1.25, (double)processes[i].priority - 1.0);
             processes[i].vruntime += delta_t * priority_weight; 
             processes[i].remaining_time--;
+            
+            current_time_global = t;  // Update global time for LRU
         }
 
         for (int i = 0; i < num_processes; i++) {
@@ -395,10 +448,20 @@ void execute_cfs() {
                     processes[i].timeline[t] = NOT_ARRIVED;
             }
         }
+        
+        // Save memory state for this time unit (for animation)
+        if (memory_enabled) {
+            save_memory_state(t);
+        }
     }
 }
 
 void run_current_algorithm() {
+    // Initialize memory system if enabled
+    if (memory_enabled) {
+        init_memory_system();
+    }
+    
     switch (current_algorithm) {
         case 0: execute_fifo(); break;
         case 1: execute_sjf(); break;

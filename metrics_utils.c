@@ -11,6 +11,7 @@ void compute_metrics_for_all() {
         processes[i].metrics[MI_EXECUTION] = processes[i].execution_time;
         processes[i].metrics[MI_DEADLINE] = processes[i].deadline;
         processes[i].metrics[MI_PRIORITY] = processes[i].priority;
+        processes[i].metrics[MI_PAGE_FAULTS] = processes[i].page_faults;
 
         // Safety check: ensure timeline is allocated
         if (!processes[i].timeline) {
