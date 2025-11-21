@@ -62,8 +62,10 @@ void initialize_default_processes() {
     // Allocate and initialize timeline arrays
     for (int i = 0; i < num_processes; i++) {
         processes[i].timeline = malloc(TOTAL_TIME * sizeof(ProcessState));
+        processes[i].page_fault_occurred = malloc(TOTAL_TIME * sizeof(bool));
         for (int t = 0; t < TOTAL_TIME; t++) {
             processes[i].timeline[t] = NOT_ARRIVED;
+            processes[i].page_fault_occurred[t] = false;
         }
     }
 }
@@ -92,9 +94,10 @@ void execute_fifo() {
         // Update states
         for (int i = 0; i < num_processes; i++) {
             if (i == running_process && running_process != -1) {
-                // Check for page fault (if memory enabled) - but don't show in gantt
-                if (memory_enabled) {
-                    check_page_fault(i);  // Just count, don't affect execution
+                // Check for page fault (if memory enabled) - mark but don't block
+                if (memory_enabled && processes[i].page_fault_occurred) {
+                    bool page_fault = check_page_fault(i);
+                    processes[i].page_fault_occurred[t] = page_fault;
                 }
                 
                 // Normal execution
@@ -138,12 +141,13 @@ void execute_sjf() {
             }
         }
 
-        // Update states
+        // Assign states
         for (int i = 0; i < num_processes; i++) {
-            if (i == running_process && running_process != -1) {
-                // Check for page fault (if memory enabled) - but don't show in gantt
-                if (memory_enabled) {
-                    check_page_fault(i);  // Just count, don't affect execution
+            if (i == running_process) {
+                // Check for page fault (if memory enabled) - mark but don't block
+                if (memory_enabled && processes[i].page_fault_occurred) {
+                    bool page_fault = check_page_fault(i);
+                    processes[i].page_fault_occurred[t] = page_fault;
                 }
                 
                 // Normal execution
@@ -223,9 +227,10 @@ void execute_edf() {
                     processes[i].overhead = false;
                 }
             } else if (i == running_process && has_executing_process(running_process)) {
-                // Check for page fault (if memory enabled) - but don't show in gantt
-                if (memory_enabled) {
-                    check_page_fault(i);  // Just count, don't affect execution
+                // Check for page fault (if memory enabled) - mark but don't block
+                if (memory_enabled && processes[i].page_fault_occurred) {
+                    bool page_fault = check_page_fault(i);
+                    processes[i].page_fault_occurred[t] = page_fault;
                 }
                 
                 // Normal execution
@@ -310,9 +315,10 @@ void execute_rr() {
                 }
             }
             else if (i == running_process && has_executing_process(running_process)) {
-                // Check for page fault (if memory enabled) - but don't show in gantt
-                if (memory_enabled) {
-                    check_page_fault(i);  // Just count, don't affect execution
+                // Check for page fault (if memory enabled) - mark but don't block
+                if (memory_enabled && processes[i].page_fault_occurred) {
+                    bool page_fault = check_page_fault(i);
+                    processes[i].page_fault_occurred[t] = page_fault;
                 }
                 
                 // Normal execution
@@ -421,9 +427,10 @@ void execute_cfs() {
         if (has_executing_process(running_process)) {
             int i = running_process;
             
-            // Check for page fault (if memory enabled) - but don't show in gantt
-            if (memory_enabled) {
-                check_page_fault(i);  // Just count, don't affect execution
+            // Check for page fault (if memory enabled) - mark but don't block
+            if (memory_enabled && processes[i].page_fault_occurred) {
+                bool page_fault = check_page_fault(i);
+                processes[i].page_fault_occurred[t] = page_fault;
             }
             
             // Normal execution
@@ -481,6 +488,9 @@ void reset_simulation() {
         processes[i].remaining_time = processes[i].execution_time;
         for (int t = 0; t < TOTAL_TIME; t++) {
             processes[i].timeline[t] = NOT_ARRIVED;
+            if (processes[i].page_fault_occurred) {
+                processes[i].page_fault_occurred[t] = false;
+            }
         }
     }
 }

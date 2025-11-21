@@ -203,6 +203,7 @@ void edit_process_screen() {
                     processes[new_idx].priority = 1;
                     processes[new_idx].final_status = PS_PENDING;
                     processes[new_idx].timeline = NULL;
+                    processes[new_idx].page_fault_occurred = NULL;
                     processes[new_idx].vruntime = 0.0;
                     processes[new_idx].overhead = false;
                     processes[new_idx].num_pages = 3; // Default to 3 pages
@@ -226,10 +227,14 @@ void edit_process_screen() {
             case 'd':
             case 'D':
                 if (num_processes > 1) {
-                    // Free timeline of the removed process (if allocated)
+                    // Free timeline and page_fault_occurred of the removed process (if allocated)
                     if (processes[selected_process].timeline) {
                         free(processes[selected_process].timeline);
                         processes[selected_process].timeline = NULL;
+                    }
+                    if (processes[selected_process].page_fault_occurred) {
+                        free(processes[selected_process].page_fault_occurred);
+                        processes[selected_process].page_fault_occurred = NULL;
                     }
 
                     // Shift remaining processes left
@@ -240,6 +245,7 @@ void edit_process_screen() {
 
                     // Clear the now-unused last slot to avoid dangling pointers
                     processes[num_processes - 1].timeline = NULL;
+                    processes[num_processes - 1].page_fault_occurred = NULL;
                     processes[num_processes - 1].id = 0;
                     processes[num_processes - 1].arrival_time = 0;
                     processes[num_processes - 1].execution_time = 0;
@@ -416,8 +422,12 @@ void show_configuration_screen() {
         if (processes[i].timeline) {
             free(processes[i].timeline);
         }
+        if (processes[i].page_fault_occurred) {
+            free(processes[i].page_fault_occurred);
+        }
         processes[i].timeline = malloc(TOTAL_TIME * sizeof(ProcessState));
-        if (processes[i].timeline == NULL) {
+        processes[i].page_fault_occurred = malloc(TOTAL_TIME * sizeof(bool));
+        if (processes[i].timeline == NULL || processes[i].page_fault_occurred == NULL) {
             // Malloc failed, exit gracefully
             endwin();
             fprintf(stderr, "Error: Failed to allocate memory for process timeline\n");
@@ -426,6 +436,7 @@ void show_configuration_screen() {
         processes[i].remaining_time = processes[i].execution_time;
         for (int t = 0; t < TOTAL_TIME; t++) {
             processes[i].timeline[t] = NOT_ARRIVED;
+            processes[i].page_fault_occurred[t] = false;
         }
     }
 }

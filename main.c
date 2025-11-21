@@ -10,6 +10,7 @@
 void cleanup() {
     for (int i = 0; i < num_processes; i++) {
         free(processes[i].timeline);
+        free(processes[i].page_fault_occurred);
     }
 }
 

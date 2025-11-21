@@ -87,6 +87,7 @@ typedef struct {
     bool overhead;
     double vruntime;  // Virtual runtime for CFS algorithm
     ProcessState *timeline;
+    bool *page_fault_occurred;  // tracks if page fault happened at each time unit (for visual overlay)
     // Metrics array (9 positions): arrival, execution, deadline, priority,
     // start, end, wait, turnaround, deadline_ok?
     int metrics[MI_COUNT];

@@ -71,6 +71,7 @@ void draw_gantt_chart(int start_y, int start_x) {
             int screen_col = start_x + 8 + (t - time_offset) * CELL_WIDTH;
             int color = 1;
             char cell_char = ' ';
+            bool show_page_fault = false;
 
             // If not current time, shows as not arrived
             if (t > current_time) {
@@ -83,6 +84,11 @@ void draw_gantt_chart(int start_y, int start_x) {
                         break;
                     case EXECUTING:
                         color = 2; // Green
+                        // Check if page fault occurred during execution
+                        if (memory_enabled && processes[i].page_fault_occurred && 
+                            processes[i].page_fault_occurred[t]) {
+                            show_page_fault = true;
+                        }
                         break;
                     case WAITING:
                         color = 3; // Yellow
@@ -113,6 +119,13 @@ void draw_gantt_chart(int start_y, int start_x) {
                 mvaddch(start_y + 2 + i, screen_col + w, cell_char);
             }
             attroff(COLOR_PAIR(color));
+            
+            // If page fault occurred, overlay a visual indicator (e.g., 'F' or special char)
+            if (show_page_fault) {
+                attron(COLOR_PAIR(6) | A_BOLD);  // Cyan for page fault indicator
+                mvaddch(start_y + 2 + i, screen_col, 'F');  // 'F' for Fault
+                attroff(COLOR_PAIR(6) | A_BOLD);
+            }
 
             // Here it considers the absolute deadline of each process by the calculation in abs_dead
             // Draws a vertical marker immediately to the right of the square and labels it with the process ID.
@@ -138,6 +151,7 @@ void draw_gantt_chart(int start_y, int start_x) {
     mvprintw(start_y + num_processes + 4, start_x,
              "Controls: SPACE=Run | </>=Navigate Memory | /=Follow | LEFT/RIGHT=Time | M=Menu | Q=Quit");
 }
+
 
 void draw_deadline_status(int y, int x, int satisfied, int cell_width) {
     if (satisfied) {
