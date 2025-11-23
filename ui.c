@@ -148,8 +148,8 @@ void draw_gantt_chart(int start_y, int start_x) {
              start_time, end_time - 1, TOTAL_TIME);
     
     // Show controls
-    mvprintw(start_y + num_processes + 4, start_x,
-             "Controls: SPACE=Run | </>=Navigate Memory | /=Follow | LEFT/RIGHT=Time | M=Menu | Q=Quit");
+    // mvprintw(start_y + num_processes + 4, start_x,
+    //          "Controls: SPACE=Run | </>=Navigate Memory | /=Follow | LEFT/RIGHT=Time | M=Menu | Q=Quit");
 }
 
 
@@ -310,17 +310,22 @@ void draw_interface() {
 
         // Current time indicator placed after the table
         mvprintw(first_metric_row + MI_COUNT + 2, 2, "Current Time: %d", current_time);
-        mvprintw(first_metric_row + MI_COUNT + 2, 20, "Quantum: %d", quantum);
-        mvprintw(first_metric_row + MI_COUNT + 2, 34, "Overhead: %d", overhead_time);
 
+        if (current_algorithm == 2 || current_algorithm == 3) {
+            mvprintw(first_metric_row + MI_COUNT + 2, 20, "Quantum: %d", quantum);
+            mvprintw(first_metric_row + MI_COUNT + 2, 34, "Overhead: %d", overhead_time);
+        }
+        
         // Summary statistics (quantitative summary)
         int summary_y = first_metric_row + MI_COUNT + 4;
         attron(A_BOLD);
         mvaddstr(summary_y, 2, "SUMMARY:");
         attroff(A_BOLD);
 
-        mvprintw(summary_y + 1, 2, "Average Arrival Time: %.2f  |  Average Execution Time: %.2f  |  Average Waiting Time: %.2f  |  Average Turnaround: %.2f",
-                 summary_stats.avg_arrival, summary_stats.avg_execution, summary_stats.avg_wait, summary_stats.avg_turnaround);
+        // mvprintw(summary_y + 1, 2, "Average Arrival Time: %.2f  |  Average Execution Time: %.2f  |  Average Waiting Time: %.2f  |  Average Turnaround: %.2f",
+        //          summary_stats.avg_arrival, summary_stats.avg_execution, summary_stats.avg_wait, summary_stats.avg_turnaround);
+        mvprintw(summary_y + 1, 2, "Average Execution Time: %.2f  |  Average Waiting Time: %.2f  |  Average Turnaround: %.2f",
+                 summary_stats.avg_execution, summary_stats.avg_wait, summary_stats.avg_turnaround);
         mvprintw(summary_y + 2, 2, "Throughput: %.4f process / time unit  |  Idleness: %.2f%%  |  Context Switches: %d",
                  summary_stats.throughput, summary_stats.idle_percentage, summary_stats.context_switches);
         
@@ -340,9 +345,9 @@ void draw_memory_visualization(int start_y) {
     int x = 2;
     int y = start_y;
     
-    attron(A_BOLD | COLOR_PAIR(2));
+    attron(A_BOLD | COLOR_PAIR(5));
     mvprintw(y, x, "MEMORY VISUALIZATION (Time: %d):", memory_animation_frame);
-    attroff(A_BOLD | COLOR_PAIR(2));
+    attroff(A_BOLD | COLOR_PAIR(5));
     
     // Display controls
     mvprintw(y, x + 40, "[< >: Navigate | Space: Follow]");
