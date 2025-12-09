@@ -1,11 +1,11 @@
 #include <locale.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include "globals.h"
-#include "scheduler.h"
-#include "ui.h"
-#include "config_ui.h"
-#include "screen_utils.h"
+#include "../include/globals.h"
+#include "../include/scheduler.h"
+#include "../include/ui.h"
+#include "../include/config_ui.h"
+#include "../include/screen_utils.h"
 
 void cleanup() {
     for (int i = 0; i < num_processes; i++) {
@@ -44,7 +44,7 @@ int main() {
 
     int running = 0;
     bool follow_mode = true;  // When true, memory frame follows current_time
-    
+
     while ((ch = getch()) != 'q') {
         update_screen_size();
 
@@ -91,7 +91,7 @@ int main() {
                     }
                 }
                 break;
-            
+
             case '<':  // Navigate memory animation backward
             case ',':
                 if (memory_animation_frame > 0) {
@@ -99,7 +99,7 @@ int main() {
                     follow_mode = false;
                 }
                 break;
-            
+
             case '>':  // Navigate memory animation forward
             case '.':
                 if (memory_animation_frame < TOTAL_TIME - 1) {
@@ -107,7 +107,7 @@ int main() {
                     follow_mode = false;
                 }
                 break;
-            
+
             case '/':  // Toggle follow mode
                 follow_mode = !follow_mode;
                 if (follow_mode) {

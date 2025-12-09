@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <string.h>
-#include "config_ui.h"
-#include "globals.h"
-#include "ui.h"
-#include "screen_utils.h"
+#include "../../include/config_ui.h"
+#include "../../include/globals.h"
+#include "../../include/ui.h"
+#include "../../include/screen_utils.h"
 
 void show_error_message(const char* message) {
     int screen_height, screen_width;

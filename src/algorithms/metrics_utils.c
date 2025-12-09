@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "../../include/globals.h"
 
 // Compute metrics for every process based on its timeline
 void compute_metrics_for_all() {

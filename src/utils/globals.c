@@ -1,4 +1,4 @@
-#include "globals.h"
+#include "../../include/globals.h"
 #include <stdlib.h>
 
 // Global variables definition
@@ -52,13 +52,13 @@ void initialize_globals() {
     overhead_time = 1;
     simulation_running = false;
     animation_speed = 100;
-    
+
     // Initialize memory
     memory_enabled = false;
     replacement_policy = POLICY_FIFO;
     current_time_global = 0;
     memory_animation_frame = 0;
-    
+
     for (int i = 0; i < TOTAL_RAM_FRAMES; i++) {
         ram_frames[i].process_id = -1;
         ram_frames[i].page_number = -1;
@@ -84,12 +84,12 @@ void initialize_globals() {
         processes[i].page_fault_remaining = 0;
         processes[i].next_page_to_access = 0;
         processes[i].exec_units_since_page_access = 0;
-        
+
         for (int p = 0; p < MAX_PAGES_PER_PROCESS; p++) {
             processes[i].pages[p].in_ram = false;
             processes[i].pages[p].frame_index = -1;
         }
-        
+
         for (int m = 0; m < MI_COUNT; m++) {
             processes[i].metrics[m] = 0;
         }

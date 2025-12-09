@@ -1,7 +1,7 @@
 #include <ncurses.h>
 #include <time.h>
-#include "screen_utils.h"
-#include "globals.h"
+#include "../../include/screen_utils.h"
+#include "../../include/globals.h"
 
 void update_screen_size() {
     getmaxyx(stdscr, screen_height, screen_width);

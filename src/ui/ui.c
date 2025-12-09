@@ -1,5 +1,5 @@
-#include "ui.h"
-#include "globals.h"
+#include "../../include/ui.h"
+#include "../../include/globals.h"
 
 void draw_legend(int start_y, int start_x) {
     mvaddstr(start_y, start_x, "LEGEND:");

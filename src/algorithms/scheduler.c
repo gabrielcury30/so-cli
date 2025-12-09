@@ -1,7 +1,7 @@
-#include "scheduler.h"
-#include "globals.h"
-#include "metrics_utils.h"
-#include "memory.h"
+#include "../../include/scheduler.h"
+#include "../../include/globals.h"
+#include "../../include/metrics_utils.h"
+#include "../../include/memory.h"
 #include <stdlib.h>
 
 bool has_executing_process(int running_process) {
@@ -99,7 +99,7 @@ void execute_fifo() {
                     bool page_fault = check_page_fault(i);
                     processes[i].page_fault_occurred[t] = page_fault;
                 }
-                
+
                 // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
@@ -118,7 +118,7 @@ void execute_fifo() {
                 processes[i].timeline[t] = COMPLETED;
             }
         }
-        
+
         // Save memory state for this time unit (for animation)
         if (memory_enabled) {
             save_memory_state(t);
@@ -149,7 +149,7 @@ void execute_sjf() {
                     bool page_fault = check_page_fault(i);
                     processes[i].page_fault_occurred[t] = page_fault;
                 }
-                
+
                 // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
@@ -162,7 +162,7 @@ void execute_sjf() {
                 processes[i].timeline[t] = COMPLETED;
             }
         }
-        
+
         // Save memory state for this time unit (for animation)
         if (memory_enabled) {
             save_memory_state(t);
@@ -232,7 +232,7 @@ void execute_edf() {
                     bool page_fault = check_page_fault(i);
                     processes[i].page_fault_occurred[t] = page_fault;
                 }
-                
+
                 // Normal execution
                 if (t - processes[i].arrival_time >= processes[i].deadline) {
                     processes[i].timeline[t] = DEADLINE_MISSED;
@@ -252,7 +252,7 @@ void execute_edf() {
                 processes[i].timeline[t] = COMPLETED;
             }
         }
-        
+
         // Save memory state for this time unit (for animation)
         if (memory_enabled) {
             save_memory_state(t);
@@ -320,7 +320,7 @@ void execute_rr() {
                     bool page_fault = check_page_fault(i);
                     processes[i].page_fault_occurred[t] = page_fault;
                 }
-                
+
                 // Normal execution
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
@@ -338,7 +338,7 @@ void execute_rr() {
 }
 
 void execute_cfs() {
-    int running_process = -1; 
+    int running_process = -1;
     int process_completed = 0;
     int overhead_remaining = 0;
     int preempted_process = -1;
@@ -346,7 +346,7 @@ void execute_cfs() {
 
     for (int i = 0; i < num_processes; i++) {
         processes[i].remaining_time = processes[i].execution_time;
-        processes[i].vruntime = -1.0; 
+        processes[i].vruntime = -1.0;
         for (int t = 0; t < TOTAL_TIME; t++) {
             processes[i].timeline[t] = NOT_ARRIVED;
         }
@@ -367,17 +367,17 @@ void execute_cfs() {
                 if (i == preempted_process) {
                     processes[i].timeline[t] = OVERHEAD;
                 } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
-                    processes[i].timeline[t] = WAITING; 
+                    processes[i].timeline[t] = WAITING;
                 } else if (processes[i].remaining_time <= 0) {
                     processes[i].timeline[t] = COMPLETED;
                 }
             }
             overhead_remaining--;
-            running_process = -1; 
+            running_process = -1;
             if (overhead_remaining == 0) {
                 preempted_process = -1;
             }
-            continue; 
+            continue;
         }
 
         if (has_executing_process(running_process) && processes[running_process].remaining_time <= 0) {
@@ -426,36 +426,36 @@ void execute_cfs() {
 
         if (has_executing_process(running_process)) {
             int i = running_process;
-            
+
             // Check for page fault (if memory enabled) - mark but don't block
             if (memory_enabled && processes[i].page_fault_occurred) {
                 bool page_fault = check_page_fault(i);
                 processes[i].page_fault_occurred[t] = page_fault;
             }
-            
+
             // Normal execution
             processes[i].timeline[t] = EXECUTING;
 
             int delta_t = 1;
             // vruntime_i = vruntime_i + Delta_t * w(prioridade_i)
             double priority_weight = pow(1.25, (double)processes[i].priority - 1.0);
-            processes[i].vruntime += delta_t * priority_weight; 
+            processes[i].vruntime += delta_t * priority_weight;
             processes[i].remaining_time--;
-            
+
             current_time_global = t;  // Update global time for LRU
         }
 
         for (int i = 0; i < num_processes; i++) {
             if (processes[i].timeline[t] != EXECUTING && processes[i].timeline[t] != OVERHEAD) {
-                if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) 
+                if (processes[i].arrival_time <= t && processes[i].remaining_time > 0)
                     processes[i].timeline[t] = WAITING;
-                else if (processes[i].remaining_time <= 0) 
+                else if (processes[i].remaining_time <= 0)
                     processes[i].timeline[t] = COMPLETED;
-                else if (processes[i].arrival_time > t) 
+                else if (processes[i].arrival_time > t)
                     processes[i].timeline[t] = NOT_ARRIVED;
             }
         }
-        
+
         // Save memory state for this time unit (for animation)
         if (memory_enabled) {
             save_memory_state(t);
@@ -468,7 +468,7 @@ void run_current_algorithm() {
     if (memory_enabled) {
         init_memory_system();
     }
-    
+
     switch (current_algorithm) {
         case 0: execute_fifo(); break;
         case 1: execute_sjf(); break;

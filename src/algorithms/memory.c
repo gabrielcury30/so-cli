@@ -1,5 +1,5 @@
-#include "memory.h"
-#include "globals.h"
+#include "../../include/memory.h"
+#include "../../include/globals.h"
 
 void init_memory_system() {
     // Safety check
