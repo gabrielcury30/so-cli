@@ -17,9 +17,9 @@ void show_error_message(const char* message) {
         mvaddch(error_y, error_x + i, ' ');
     }
 
-    attron(COLOR_PAIR(4) | A_BOLD);
+    attron(COLOR_PAIR(RED) | A_BOLD);
     mvaddstr(error_y, error_x, message);
-    attroff(COLOR_PAIR(4) | A_BOLD);
+    attroff(COLOR_PAIR(RED) | A_BOLD);
     refresh();
 }
 
@@ -101,7 +101,7 @@ void edit_process_screen() {
         int start_x = (screen_width - box_width) / 2;
 
         // Draw frame
-        attron(COLOR_PAIR(2));
+        attron(COLOR_PAIR(GREEN));
         for (int i = 0; i < box_height; i++) {
             for (int j = 0; j < box_width; j++) {
                 if (i == 0 || i == box_height - 1 || j == 0 || j == box_width - 1) {
@@ -109,12 +109,12 @@ void edit_process_screen() {
                 }
             }
         }
-        attroff(COLOR_PAIR(2));
+        attroff(COLOR_PAIR(GREEN));
 
         // Title (centered)
-        attron(A_BOLD | COLOR_PAIR(2));
+        attron(A_BOLD | COLOR_PAIR(GREEN));
         mvaddstr(start_y, start_x + (box_width - 22) / 2, "PROCESS CONFIGURATION");
-        attroff(A_BOLD | COLOR_PAIR(2));
+        attroff(A_BOLD | COLOR_PAIR(GREEN));
 
         // Process list header
         mvaddstr(start_y + 3, start_x + 2, "ID");
@@ -127,7 +127,7 @@ void edit_process_screen() {
         // List processes
         for (int i = 0; i < num_processes; i++) {
             if (i == selected_process) {
-                attron(A_REVERSE | COLOR_PAIR(2));
+                attron(A_REVERSE | COLOR_PAIR(GREEN));
             }
 
             mvprintw(start_y + 5 + i, start_x + 2, "P%d", processes[i].id);
@@ -138,7 +138,7 @@ void edit_process_screen() {
             mvprintw(start_y + 5 + i, start_x + 48, "%d", processes[i].num_pages);
 
             if (i == selected_process) {
-                attroff(A_REVERSE | COLOR_PAIR(2));
+                attroff(A_REVERSE | COLOR_PAIR(GREEN));
             }
         }
 
@@ -211,12 +211,12 @@ void edit_process_screen() {
                     processes[new_idx].page_fault_remaining = 0;
                     processes[new_idx].next_page_to_access = 0;
                     processes[new_idx].exec_units_since_page_access = 0;
-                    
+
                     for (int p = 0; p < MAX_PAGES_PER_PROCESS; p++) {
                         processes[new_idx].pages[p].in_ram = false;
                         processes[new_idx].pages[p].frame_index = -1;
                     }
-                    
+
                     for (int m = 0; m < MI_COUNT; m++) {
                         processes[new_idx].metrics[m] = 0;
                     }
@@ -302,7 +302,7 @@ void show_main_menu() {
         int start_x = (screen_width - box_width) / 2;
 
         // Draw frame
-        attron(COLOR_PAIR(2)); // Green border
+        attron(COLOR_PAIR(GREEN));
         for (int i = 0; i < box_height; i++) {
             for (int j = 0; j < box_width; j++) {
                 if (i == 0 || i == box_height - 1 || j == 0 || j == box_width - 1) {
@@ -310,26 +310,26 @@ void show_main_menu() {
                 }
             }
         }
-        attroff(COLOR_PAIR(2));
+        attroff(COLOR_PAIR(GREEN));
 
         // Title (centered)
-        attron(A_BOLD | COLOR_PAIR(2));
+        attron(A_BOLD | COLOR_PAIR(GREEN));
         const char* title = "CPU SCHEDULER CONFIGURATION";
         mvaddstr(start_y, start_x + (box_width - strlen(title)) / 2, title);
-        attroff(A_BOLD | COLOR_PAIR(2));
+        attroff(A_BOLD | COLOR_PAIR(GREEN));
 
         // Menu items (centered)
         for (int i = 0; i < menu_size; i++) {
             int item_x = start_x + (box_width - strlen(menu_items[i])) / 2;
 
             if (i == selected) {
-                attron(A_REVERSE | COLOR_PAIR(2));
+                attron(A_REVERSE | COLOR_PAIR(GREEN));
             }
 
             mvaddstr(start_y + 5 + i, item_x, menu_items[i]);
 
             if (i == selected) {
-                attroff(A_REVERSE | COLOR_PAIR(2));
+                attroff(A_REVERSE | COLOR_PAIR(GREEN));
             }
         }
 
@@ -385,10 +385,10 @@ void show_main_menu() {
                             mvaddstr(7, 5, "Enable Memory? (0=NO, 1=YES): ");
                             mem_choice = get_int_input(7, 37, "", 0, 1, memory_enabled ? 1 : 0);
                             memory_enabled = (mem_choice == 1);
-                            
+
                             if (memory_enabled) {
                                 int policy_choice = get_int_input(
-                                    9, 5, "Policy (0=FIFO, 1=LRU)", 0, 1, 
+                                    9, 5, "Policy (0=FIFO, 1=LRU)", 0, 1,
                                     replacement_policy == POLICY_FIFO ? 0 : 1
                                 );
                                 replacement_policy = (policy_choice == 0) ? POLICY_FIFO : POLICY_LRU;

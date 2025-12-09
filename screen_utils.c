@@ -18,11 +18,11 @@ void show_screen_size_error() {
     int center_y = screen_height / 2;
     int center_x = screen_width / 2;
 
-    attron(A_BOLD | COLOR_PAIR(4)); // Bold Red
+    attron(A_BOLD | COLOR_PAIR(RED));
     mvaddstr(center_y - 2, center_x - 12, "                        ");
     mvaddstr(center_y - 1, center_x - 12, "    SCREEN TOO SMALL!   ");
     mvaddstr(center_y,     center_x - 12, "                        ");
-    attroff(A_BOLD | COLOR_PAIR(4));
+    attroff(A_BOLD | COLOR_PAIR(RED));
 
     // Detailed information
     mvprintw(center_y + 2, center_x - 15, "Required minimum: 125 x 45");

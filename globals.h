@@ -11,6 +11,14 @@
 #define FRAME_SIZE_KB 4
 #define TOTAL_RAM_KB 200
 
+// Colors
+#define GRAY 1
+#define GREEN 2
+#define YELLOW 3
+#define RED 4
+#define WHITE 5
+#define CYAN 6
+
 // Process states
 typedef enum {
     NOT_ARRIVED = 0,
@@ -93,7 +101,7 @@ typedef struct {
     int metrics[MI_COUNT];
     // Final status after simulation (completed on time, missed, etc.)
     ProcessStatus final_status;
-    
+
     // Memory management
     Page pages[MAX_PAGES_PER_PROCESS];
     int page_faults;
