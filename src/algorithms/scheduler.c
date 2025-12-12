@@ -127,24 +127,30 @@ void execute_fifo() {
 }
 
 void execute_sjf() {
-    for (int t = 0; t < TOTAL_TIME; t++) {
-        int running_process = -1;
-        int shortest_time = TOTAL_TIME + 1;
+    int running_process = -1;
+    int process_completed = 0;
 
-        // Find process with shortest remaining time
-        for (int i = 0; i < num_processes; i++) {
-            if (processes[i].arrival_time <= t &&
-                processes[i].remaining_time > 0 &&
-                processes[i].remaining_time < shortest_time) {
-                shortest_time = processes[i].remaining_time;
-                running_process = i;
+    for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
+
+        if (running_process == -1) {
+            int shortest_time = TOTAL_TIME + 1;
+            running_process = -1;
+
+            // Find process with least total execution time
+            for (int i = 0; i < num_processes; i++) {
+                if (processes[i].arrival_time <= t &&
+                    processes[i].remaining_time > 0 &&
+                    processes[i].execution_time < shortest_time) {
+                    shortest_time = processes[i].execution_time;
+                    running_process = i;
+                }
             }
         }
 
         // Assign states
         for (int i = 0; i < num_processes; i++) {
-            if (i == running_process) {
-                // Check for page fault (if memory enabled) - mark but don't block
+            if (i == running_process && running_process != -1) {
+                // Check for page fault
                 if (memory_enabled && processes[i].page_fault_occurred) {
                     bool page_fault = check_page_fault(i);
                     processes[i].page_fault_occurred[t] = page_fault;
@@ -154,6 +160,13 @@ void execute_sjf() {
                 processes[i].timeline[t] = EXECUTING;
                 processes[i].remaining_time--;
                 current_time_global = t;
+
+                // Check if process is done
+                if (processes[i].remaining_time <= 0) {
+                    process_completed++;
+                    running_process = -1;
+                }
+
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
             } else if (processes[i].arrival_time > t) {
@@ -163,7 +176,7 @@ void execute_sjf() {
             }
         }
 
-        // Save memory state for this time unit (for animation)
+        // Save memory state
         if (memory_enabled) {
             save_memory_state(t);
         }
