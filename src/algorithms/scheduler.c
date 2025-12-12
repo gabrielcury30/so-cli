@@ -4,8 +4,10 @@
 #include "../../include/memory.h"
 #include <stdlib.h>
 
+static const int NONE = -1;
+
 bool has_executing_process(int running_process) {
-    return running_process != -1;
+    return running_process != NONE;
 }
 
 void initialize_default_processes() {
@@ -71,15 +73,15 @@ void initialize_default_processes() {
 }
 
 void execute_fifo() {
-    int running_process = -1;
+    int running_process = NONE;
     int process_completed = 0;
 
     for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
-        // If there are any process executing, find next on queue
-        if (running_process == -1) {
+        // If there are no process executing, find next on queue
+        if (!has_executing_process(running_process)) {
             // Choose process that got in earlier and yet no finished
             int earliest_arrival = TOTAL_TIME + 1;
-            running_process = -1;
+            running_process = NONE;
 
             for (int i = 0; i < num_processes; i++) {
                 if (processes[i].arrival_time <= t &&
@@ -93,7 +95,7 @@ void execute_fifo() {
 
         // Update states
         for (int i = 0; i < num_processes; i++) {
-            if (i == running_process && running_process != -1) {
+            if (i == running_process) {
                 // Check for page fault (if memory enabled) - mark but don't block
                 if (memory_enabled && processes[i].page_fault_occurred) {
                     bool page_fault = check_page_fault(i);
@@ -108,7 +110,7 @@ void execute_fifo() {
                 // Check if process is done
                 if (processes[i].remaining_time <= 0) {
                     process_completed++;
-                    running_process = -1;  // Free CPU for next process
+                    running_process = NONE;  // Free CPU for next process
                 }
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
                 processes[i].timeline[t] = WAITING;
@@ -127,14 +129,14 @@ void execute_fifo() {
 }
 
 void execute_sjf() {
-    int running_process = -1;
+    int running_process = NONE;
     int process_completed = 0;
 
     for (int t = 0; t < TOTAL_TIME && process_completed < num_processes; t++) {
-
-        if (running_process == -1) {
+        // If there are no process executing, find next on queue (shortest one)
+        if (!has_executing_process(running_process)) {
             int shortest_time = TOTAL_TIME + 1;
-            running_process = -1;
+            running_process = NONE;
 
             // Find process with least total execution time
             for (int i = 0; i < num_processes; i++) {
@@ -149,7 +151,7 @@ void execute_sjf() {
 
         // Assign states
         for (int i = 0; i < num_processes; i++) {
-            if (i == running_process && running_process != -1) {
+            if (i == running_process) {
                 // Check for page fault
                 if (memory_enabled && processes[i].page_fault_occurred) {
                     bool page_fault = check_page_fault(i);
@@ -164,7 +166,7 @@ void execute_sjf() {
                 // Check if process is done
                 if (processes[i].remaining_time <= 0) {
                     process_completed++;
-                    running_process = -1;
+                    running_process = NONE;
                 }
 
             } else if (processes[i].arrival_time <= t && processes[i].remaining_time > 0) {
@@ -185,7 +187,7 @@ void execute_sjf() {
 
 void execute_edf() {
     int current_quantum = 0;
-    int running_process = -1;
+    int running_process = NONE;
     int overhead_remaining = 0;
 
     // Reset remaining times and initialize overhead flag
@@ -199,7 +201,7 @@ void execute_edf() {
 
     for (int t = 0; t < TOTAL_TIME; t++) {
         // Check if current process finished its quantum or completed
-        if (running_process != -1) {
+        if (has_executing_process(running_process)) {
             bool needs_preemption = (current_quantum >= quantum);
             bool has_finished = (processes[running_process].remaining_time <= 0);
 
@@ -209,7 +211,7 @@ void execute_edf() {
                     processes[running_process].overhead = true;
                     overhead_remaining = overhead_time;
                 }
-                running_process = -1;
+                running_process = NONE;
                 current_quantum = 0;
             }
         }
@@ -217,7 +219,7 @@ void execute_edf() {
         // Get next process (EDF selection)
         if (!has_executing_process(running_process) && overhead_remaining == 0) {
             int earliest_deadline = TOTAL_TIME + 1;
-            running_process = -1;
+            running_process = NONE;
 
             // Find process with earliest deadline
             for (int i = 0; i < num_processes; i++) {
@@ -239,7 +241,7 @@ void execute_edf() {
                 if (overhead_remaining == 0) {
                     processes[i].overhead = false;
                 }
-            } else if (i == running_process && has_executing_process(running_process)) {
+            } else if (i == running_process) {
                 // Check for page fault (if memory enabled) - mark but don't block
                 if (memory_enabled && processes[i].page_fault_occurred) {
                     bool page_fault = check_page_fault(i);
@@ -275,7 +277,7 @@ void execute_edf() {
 
 void execute_rr() {
     int current_quantum = 0;
-    int running_process = -1;
+    int running_process = NONE;
     int process_queue[MAX_PROCESSES];
     int queue_size = 0;
     int overhead_remaining = 0;
@@ -302,7 +304,7 @@ void execute_rr() {
                     process_queue[queue_size++] = running_process;
                     overhead_remaining = overhead_time;
                 }
-                running_process = -1;
+                running_process = NONE;
                 current_quantum = 0;
             }
         }
@@ -327,7 +329,7 @@ void execute_rr() {
                     processes[i].overhead = false;
                 }
             }
-            else if (i == running_process && has_executing_process(running_process)) {
+            else if (i == running_process) {
                 // Check for page fault (if memory enabled) - mark but don't block
                 if (memory_enabled && processes[i].page_fault_occurred) {
                     bool page_fault = check_page_fault(i);
@@ -351,10 +353,10 @@ void execute_rr() {
 }
 
 void execute_cfs() {
-    int running_process = -1;
+    int running_process = NONE;
     int process_completed = 0;
     int overhead_remaining = 0;
-    int preempted_process = -1;
+    int preempted_process = NONE;
     const double EPSILON = 1e-9; // Tolerance for comparison of double
 
     for (int i = 0; i < num_processes; i++) {
@@ -386,28 +388,28 @@ void execute_cfs() {
                 }
             }
             overhead_remaining--;
-            running_process = -1;
+            running_process = NONE;
             if (overhead_remaining == 0) {
-                preempted_process = -1;
+                preempted_process = NONE;
             }
             continue;
         }
 
         if (has_executing_process(running_process) && processes[running_process].remaining_time <= 0) {
             process_completed++;
-            running_process = -1;
+            running_process = NONE;
         }
 
         // Select the lowest vruntim,
         // if tied, select the process with the highest index
-        int selected_process = -1;
+        int selected_process = NONE;
         double min_vruntime_prontos = -1.0;
 
         for (int i = 0; i < num_processes; i++) {
             if (processes[i].arrival_time <= t && processes[i].remaining_time > 0 && processes[i].vruntime >= 0.0) {
 
                 // Select: Strictly lowest OR tie + highest index (i > selected_process)
-                if (selected_process == -1 ||
+                if (selected_process == NONE ||
                     processes[i].vruntime < min_vruntime_prontos - EPSILON ||
                     (fabs(processes[i].vruntime - min_vruntime_prontos) < EPSILON && i > selected_process))
                 {
@@ -421,7 +423,7 @@ void execute_cfs() {
         running_process = selected_process;
 
         // If a process was running before and the new selected is different
-        if (current_rp != -1 && selected_process != current_rp) {
+        if (current_rp != NONE && selected_process != current_rp) {
 
             int is_strict_preemption = (processes[current_rp].vruntime > processes[selected_process].vruntime + EPSILON);
 
@@ -431,7 +433,7 @@ void execute_cfs() {
             {
                 overhead_remaining = overhead_time;
                 preempted_process = current_rp;
-                running_process = -1;
+                running_process = NONE;
                 t--; // Decrement time to make selected process run on next tick (after overhead)
                 continue;
             }
